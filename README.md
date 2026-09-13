@@ -11,7 +11,7 @@ authoring conventions.
 
 | Skill | Version | Description |
 | --- | --- | --- |
-| [setup-docs](./skills/setup-docs) | 1.0.0 | Sets up a project's `docs/` folder — an `ARCHITECTURE.md` entry point, per-feature one-pagers, dated decision and bug records, plus a generated feature map and record index with a CI-able staleness check. |
+| [setup-docs](./skills/setup-docs) | 1.0.0 | Sets up a project's `docs/` folder — an `ARCHITECTURE.md` entry point, per-feature one-pagers, dated decision and bug records, plus a generated feature map and record index with a CI-able staleness check. User-invoked only. |
 | [skill-sync](./skills/skill-sync) | 1.0.0 | Release a finished skill (version bump + changelog) and sync installed skills in `~/.claude/skills` with this repo. |
 | [flow](./skills/workflows/flow) | 1.0.0 | Runs the full feature workflow end to end — design, plan, implement, review — handing off markdown artifacts between stages. |
 | [flow-design](./skills/workflows/flow-design) | 1.0.0 | Stage 1 — scans the codebase, grills the user until nothing is ambiguous, then writes the technical design. The only interactive stage. |

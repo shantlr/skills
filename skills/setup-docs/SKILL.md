@@ -1,10 +1,24 @@
 ---
 name: setup-docs
-description: Sets up a project's `docs/` folder — an ARCHITECTURE.md entry point, per-feature one-pagers, dated decision and bug records, plans, and generated FEATURE-MAP.md / INDEX.md so the docs stay searchable. Use when the user says "set up docs", "create a docs folder", "add documentation structure", "scaffold docs", "document this project", "I want ADRs / decision records / bug records", or asks for an architecture overview or a map of which files implement what.
+description: Sets up a project's `docs/` folder — an ARCHITECTURE.md entry point, per-feature one-pagers, dated decision and bug records, plans, and generated FEATURE-MAP.md / INDEX.md so the docs stay searchable. Use when the user says "set up docs", "create a docs folder", "add documentation structure", "scaffold docs", "document this project", "I want ADRs / decision records / bug records", or asks for an architecture overview or a map of which files implement what. User-invoked only — never trigger this skill on your own initiative while doing other work; it must be asked for explicitly.
 version: 1.0.0
 ---
 
 # Setup Docs
+
+> **User-invoked only.** This skill runs *only* when the user explicitly asks
+> for it (by name, or with a phrase from the description above). Do not fire it
+> as a side-effect of another task — not after a feature lands, not because a
+> project "should have docs", not from inside another skill or subagent.
+> Scaffolding a `docs/` tree nobody asked for rewrites `CLAUDE.md` and drops a
+> dozen files into the repo; that has to be a deliberate choice.
+>
+> ```
+>   user: "set up docs"      ─────▶ run this skill        ✓
+>   user: "add feature X"    ──┐
+>   finished another skill   ──┼──▶ do NOT run it         ✗
+>   repo has no docs/        ──┘         (mention it at most, then move on)
+> ```
 
 Creates a durable, agent-friendly `docs/` tree in the current project, and
 **writes the entry point for real** by reading the codebase. The point is that

@@ -12,12 +12,21 @@ skills/
     CHANGELOG.md        # required once released — see Versioning
     references/         # optional — docs loaded on demand
     scripts/            # optional — executable helpers
-    assets/             # optional — templates, images
+      assets/             # optional — templates, images
+  <group-name>/         # optional — skills that compose into one workflow
+    README.md           #   how the group's skills fit together
+    <skill-name>/       #   normal skill dirs, one level deep only
+      SKILL.md
 README.md               # index of all skills
 ```
 
 - One directory per skill, `kebab-case`, matching the frontmatter `name`.
 - Keep the directory name, the `name` field, and the README row in sync.
+- A **group** directory has no `SKILL.md` of its own — that is how tooling tells
+  a group from a skill. Nesting is one level only. Prefix grouped skill names
+  with the group's entry point (`flow`, `flow-design`, …) so names stay globally
+  unique when symlinked into `~/.claude/skills/`.
+- Existing group: [`skills/workflows/`](./skills/workflows) — the `flow` workflow.
 
 ## SKILL.md format
 

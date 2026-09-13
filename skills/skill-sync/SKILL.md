@@ -39,7 +39,13 @@ If nothing observable changed for a *consumer*, do not bump and do not write an 
 
 Run this only when the user says they are **done** iterating — not after every edit.
 
-1. Identify the skill directory: `skills/<name>/`.
+1. Identify the skill directory: `skills/<name>/`, or `skills/<group>/<name>/` for
+   a skill that belongs to a workflow group (e.g. `skills/workflows/flow-design/`).
+   Locate it rather than assuming:
+   ```sh
+   ls -d skills/*/<name> skills/<name> 2>/dev/null
+   ```
+   Below, `skills/<name>/` means whichever path that returns.
 2. Determine what actually changed since the last release:
    ```sh
    git log --oneline -- skills/<name>/

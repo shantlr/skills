@@ -23,15 +23,35 @@ semver_lt() {
   [ "$(printf '%s\n%s\n' "$1" "$2" | sort -t. -k1,1n -k2,2n -k3,3n | head -1)" = "$1" ]
 }
 
+# Enumerate repo skills as "name<TAB>path". A directory directly under skills/
+# is either a skill (has SKILL.md) or a group of skills (e.g. workflows/).
+repo_skills() {
+  for dir in "$REPO_SKILLS"/*/; do
+    [ -d "$dir" ] || continue
+    if [ -f "$dir/SKILL.md" ]; then
+      printf '%s\t%s\n' "$(basename "$dir")" "${dir%/}"
+    else
+      for sub in "$dir"*/; do
+        [ -f "$sub/SKILL.md" ] || continue
+        printf '%s\t%s\n' "$(basename "$sub")" "${sub%/}"
+      done
+    fi
+  done
+}
+
+repo_skill_path() {
+  repo_skills | awk -F'\t' -v n="$1" '$1==n { print $2; exit }'
+}
+
 printf 'name\tinstalled\trepo\tstatus\n'
 
 for dir in "$INSTALLED"/*/; do
   [ -d "$dir" ] || continue
   name="$(basename "$dir")"
-  repo_skill="$REPO_SKILLS/$name"
+  repo_skill="$(repo_skill_path "$name")"
   repo_ver="$(read_version "$repo_skill/SKILL.md")"
 
-  if [ ! -d "$repo_skill" ]; then
+  if [ -z "$repo_skill" ] || [ ! -d "$repo_skill" ]; then
     printf '%s\t%s\t—\texternal\n' "$name" "$(read_version "$dir/SKILL.md")"
     continue
   fi
@@ -57,9 +77,8 @@ for dir in "$INSTALLED"/*/; do
   printf '%s\t%s\t%s\t%s\n' "$name" "$inst_ver" "$repo_ver" "$status"
 done
 
-for dir in "$REPO_SKILLS"/*/; do
-  [ -d "$dir" ] || continue
-  name="$(basename "$dir")"
+while IFS=$'\t' read -r name dir; do
+  [ -n "$name" ] || continue
   [ -e "$INSTALLED/$name" ] && continue
   printf '%s\t—\t%s\tnot installed\n' "$name" "$(read_version "$dir/SKILL.md")"
-done
+done < <(repo_skills)

@@ -3,12 +3,18 @@
 # authors (parallel agents, separate worktrees) never collide.
 #
 #   new-record.sh [--root <path>] [--docs-dir <name>] [--date YYYY-MM-DD] \
-#                 <decision|bug|feature> <feature> <title>
+#                 <decision|bug|feature|guideline> <feature|area> <title>
 #
 #   new-record.sh decision queue "Partial dedupe index"
 #     -> docs/features/queue/decisions/2026-09-13-partial-dedupe-index.md
 #   new-record.sh bug queue "Duplicate accepted after restart"
 #     -> docs/features/queue/bugs/2026-09-13-duplicate-accepted-after-restart.md
+#   new-record.sh guideline ui-ux "Data freshness"
+#     -> docs/guidelines/ui-ux/data-freshness.md, rules pre-ID'd DATA-FRESHNESS-n
+#
+# A guideline is NOT dated: it is a living rule set for a whole area, amended in
+# place, not a record of a moment. Its second argument is the area, not a
+# feature — a rule that belongs to one feature is not a guideline.
 #
 # Plans are NOT docs records — a unit of work lives in tasks/<date>-<slug>/
 # (design.md, plan.md, review.md), written by the `flow` skills.
@@ -68,7 +74,7 @@ DOCS_DIR="${DOCS_DIR:-$DEF_DOCS_DIR}"
 
 KIND="${1:-}"; FEATURE="${2:-}"
 [ -n "$KIND" ] && [ -n "$FEATURE" ] && [ $# -ge 3 ] || {
-  echo "usage: new-record.sh <decision|bug|feature> <feature> <title>" >&2; exit 2; }
+  echo "usage: new-record.sh <decision|bug|feature|guideline> <feature|area> <title>" >&2; exit 2; }
 shift 2
 
 # Flags are only honoured before the positionals; catching them after is the
@@ -95,14 +101,14 @@ DOCS="$ROOT/$DOCS_DIR"
 # Validate the KIND before the feature name, so that a retired kind reports
 # itself ("kind must be…") instead of the misleading "'plan' needs a feature".
 case "$KIND" in
-  decision|bug|feature) ;;
-  *) echo "error: kind must be decision|bug|feature (plans live in tasks/, not docs/)" >&2; exit 2 ;;
+  decision|bug|feature|guideline) ;;
+  *) echo "error: kind must be decision|bug|feature|guideline (plans live in tasks/, not docs/)" >&2; exit 2 ;;
 esac
 
 # The feature name becomes a path component, so it is validated for EVERY kind
 # — without this, `decision "../../.."` writes the record outside the repository.
 case "$FEATURE" in
-  -|"")         echo "error: '$KIND' needs a feature name" >&2; exit 2 ;;
+  -|"")         echo "error: '$KIND' needs a $([ "$KIND" = guideline ] && echo area || echo feature) name" >&2; exit 2 ;;
   *[!a-z0-9-]*) echo "error: feature '$FEATURE' must be lowercase kebab-case" >&2; exit 2 ;;
 esac
 
@@ -118,14 +124,42 @@ case "$SLUG" in
   *[!a-z0-9-]*) echo "error: internal — slug '$SLUG' is not kebab-case" >&2; exit 2 ;;
 esac
 
+# "data-freshness" -> "DATA-FRESHNESS", the prefix of every rule ID in the file.
+TOPIC_ID="$(printf '%s' "$SLUG" | tr '[:lower:]' '[:upper:]')"
+
 case "$KIND" in
-  decision) DIR="$DOCS/features/$FEATURE/decisions"; TPL="$TEMPLATES/decision.md" ;;
-  bug)      DIR="$DOCS/features/$FEATURE/bugs";      TPL="$TEMPLATES/bug.md" ;;
-  feature)  DIR="$DOCS/features/$FEATURE";           TPL="$TEMPLATES/feature.md" ;;
-  *) echo "error: kind must be decision|bug|feature (plans live in tasks/, not docs/)" >&2; exit 2 ;;
+  decision)  DIR="$DOCS/features/$FEATURE/decisions"; TPL="$TEMPLATES/decision.md" ;;
+  bug)       DIR="$DOCS/features/$FEATURE/bugs";      TPL="$TEMPLATES/bug.md" ;;
+  feature)   DIR="$DOCS/features/$FEATURE";           TPL="$TEMPLATES/feature.md" ;;
+  guideline) DIR="$DOCS/guidelines/$FEATURE";         TPL="$TEMPLATES/guideline.md" ;;
+  *) echo "error: kind must be decision|bug|feature|guideline (plans live in tasks/, not docs/)" >&2; exit 2 ;;
 esac
 
-if [ "$KIND" = "feature" ]; then
+if [ "$KIND" = "guideline" ]; then
+  [ -f "$TPL" ] || {
+    echo "error: no $TPL — this tree was scaffolded without guidelines;" >&2
+    echo "       re-run setup-flow.sh with --guidelines" >&2; exit 2; }
+  # Rule IDs are derived from the topic slug, so the slug has to be unique
+  # across ALL areas: with ui-ux/forms.md and api/forms.md both present,
+  # "FORMS-2" names two different rules and every citation becomes ambiguous.
+  if [ -d "$DOCS/guidelines" ]; then
+    clash="$(find "$DOCS/guidelines" -mindepth 2 -maxdepth 2 -name "$SLUG.md" 2>/dev/null | head -1)"
+    [ -z "$clash" ] || {
+      echo "error: topic '$SLUG' already exists at $clash" >&2
+      echo "       rule IDs are $TOPIC_ID-n, so two areas cannot share a topic name" >&2
+      exit 1; }
+  fi
+  mkdir -p "$DIR"
+  # A tree scaffolded without --guidelines still gets a usable folder if someone
+  # creates the first topic by hand: without this, `docs/guidelines/` appears
+  # with no index and nobody downstream knows what IDs mean or how one is
+  # earned. Only the skill-side copy carries this asset; an installed tree that
+  # opted in already has the README, so the copy is a no-op there.
+  if [ ! -e "$DOCS/guidelines/README.md" ] && [ -f "$TEMPLATES/guidelines-readme.md" ]; then
+    cp "$TEMPLATES/guidelines-readme.md" "$DOCS/guidelines/README.md"
+  fi
+  OUT="$DIR/$SLUG.md"          # a rule set is amended in place; it is not dated
+elif [ "$KIND" = "feature" ]; then
   mkdir -p "$DIR/bugs" "$DIR/decisions"
   # Git does not track empty directories; without these, a fresh clone loses
   # bugs/ and decisions/ and the next `new-record.sh bug <f>` fails.
@@ -156,7 +190,8 @@ trap 'rm -f "$TMP"; [ -n "$CLAIMED" ] && rm -f "$CLAIMED"; true' EXIT
 # Values travel through the environment and are spliced in with index/substr,
 # never through a regex replacement: a title containing / $ @ & or \ is data
 # here, not syntax.
-TITLE="$TITLE" DATE="$DATE" FEATURE="$FEATURE" KIND="$KIND" awk '
+TITLE="$TITLE" DATE="$DATE" FEATURE="$FEATURE" KIND="$KIND" \
+TOPIC="$SLUG" TOPIC_ID="$TOPIC_ID" awk '
   # Replaces EVERY occurrence: a hand-customised template line carrying two
   # YYYY-MM-DD placeholders should not keep the second one.
   function subst(s, old, new,   i, out) {
@@ -168,7 +203,8 @@ TITLE="$TITLE" DATE="$DATE" FEATURE="$FEATURE" KIND="$KIND" awk '
     return out s
   }
   BEGIN { title = ENVIRON["TITLE"]; date = ENVIRON["DATE"]
-          feature = ENVIRON["FEATURE"]; kind = ENVIRON["KIND"] }
+          feature = ENVIRON["FEATURE"]; kind = ENVIRON["KIND"]
+          topic = ENVIRON["TOPIC"]; topic_id = ENVIRON["TOPIC_ID"] }
   NR == 1 && /^<!--/ { skip = 1 }
   skip { if (/-->/) skip = 0; next }
   !seen_body && /^[[:space:]]*$/ { next }          # blank lines left by the preamble
@@ -185,6 +221,12 @@ TITLE="$TITLE" DATE="$DATE" FEATURE="$FEATURE" KIND="$KIND" awk '
   /^date:[[:space:]]*YYYY-MM-DD/  { print subst($0, "YYYY-MM-DD", date); next }
   /^found:[[:space:]]*YYYY-MM-DD/ { print subst($0, "YYYY-MM-DD", date); next }
   /^feature:[[:space:]]*<feature>/ { print subst($0, "<feature>", feature); next }
+  # Guideline frontmatter: `area` is the second positional, `topic` the slug.
+  /^area:[[:space:]]*<area>/   { print subst($0, "<area>", feature); next }
+  /^topic:[[:space:]]*<topic>/ { print subst($0, "<topic>", topic); next }
+  # Rule-ID prefix, seeded everywhere it appears so the author only picks
+  # numbers. Unconditional: `<TOPIC>` is a placeholder no real line contains.
+  kind == "guideline" { $0 = subst($0, "<TOPIC>", topic_id) }
   # Body fields, for templates that still carry them.
   /^- \*\*Date:\*\* YYYY-MM-DD/  { print subst($0, "YYYY-MM-DD", date); next }
   /^- \*\*Found:\*\* YYYY-MM-DD/ { print subst($0, "YYYY-MM-DD", date); next }

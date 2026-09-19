@@ -1,7 +1,7 @@
 ---
 name: flow-setup
-description: Sets up the two folders the flow workflow reads and writes — a `docs/` tree (ARCHITECTURE.md entry point, per-feature one-pagers, dated decision and bug records, generated FEATURE-MAP.md / INDEX.md) and a `tasks/` folder where each unit of work keeps its design, plan and review. Also migrates an existing project onto that layout, proposing a move for every file already serving the same purpose. Use when the user says "set up docs", "set up the flow", "create a docs folder", "add documentation structure", "scaffold docs", "document this project", "I want ADRs / decision records / bug records", "migrate my docs", or asks for an architecture overview or a map of which files implement what. User-invoked only — never trigger this skill on your own initiative while doing other work; it must be asked for explicitly.
-version: 2.0.0
+description: Sets up the two folders the flow workflow reads and writes — a `docs/` tree (ARCHITECTURE.md entry point, per-feature one-pagers, dated decision and bug records, a `guidelines/` rulebook of cross-cutting UI/UX and API conventions, generated FEATURE-MAP.md / INDEX.md) and a `tasks/` folder where each unit of work keeps its design, plan and review. Also migrates an existing project onto that layout, proposing a move for every file already serving the same purpose. Use when the user says "set up docs", "set up the flow", "create a docs folder", "add documentation structure", "scaffold docs", "document this project", "I want ADRs / decision records / bug records", "I want a place for our UI/UX guidelines or house conventions", "migrate my docs", or asks for an architecture overview or a map of which files implement what. User-invoked only — never trigger this skill on your own initiative while doing other work; it must be asked for explicitly.
+version: 2.1.0
 ---
 
 # Flow / Setup: the folders the flow lives in
@@ -40,7 +40,10 @@ docs/
 ├── new-record.sh          ← creates a dated record from the right template
 ├── README.md              ← how the folder works, reading + writing paths
 ├── templates/             ← copy these; they are the shape, not suggestions
-│   ├── architecture.md  feature.md  bug.md  decision.md
+│   ├── architecture.md  feature.md  bug.md  decision.md  guideline.md
+├── guidelines/            ← house rules that apply to EVERY feature (opt-in)
+│   ├── README.md            how a rule is earned, how IDs work
+│   └── <area>/<topic>.md    ui-ux/data-freshness.md → DATA-FRESHNESS-1, -2, …
 └── features/              ← one directory per feature area
     └── <feature>/
         ├── README.md        what it is, how it works, + ## Key files
@@ -67,6 +70,28 @@ this automatically).
   tasks/<date>-<slug>/review.md ──┴──►  docs/features/<f>/README.md
                                         docs/features/<f>/decisions/<date>-<slug>.md
 ```
+
+**Three kinds of durable page, and the question each one answers.** Getting this
+wrong is how a docs tree becomes unusable: a product-wide rule filed under one
+feature is a rule nobody else ever finds, and a feature-specific choice promoted
+to a guideline is a rule that will be wrong somewhere else.
+
+```
+   features/<f>/README.md    features/<f>/decisions/    guidelines/<area>/
+   ──────────────────────    ───────────────────────    ──────────────────
+   how ONE thing works,      why ONE choice was         how EVERY case of a
+   today                     made, once                 kind is handled
+   edited in place           dated, append-only         amended in place,
+                                                        rules numbered forever
+```
+
+Guidelines are what a team accumulates rather than designs: *never render data
+that has silently gone stale*, *a destructive action names what it destroys*,
+*a failed mutation rolls back*. You hit the problem once, decide the rule, and
+stop re-deciding it. Every rule carries a permanent ID —
+`docs/guidelines/ui-ux/data-freshness.md` → `DATA-FRESHNESS-3` — so a design can
+bind to it and a review can cite it. They are **opt-in** (`--guidelines`) and
+**earned**: an invented rulebook is one nobody reads.
 
 Records live **under the feature**, not in a global `adr/` pile: *"why does
 capture refuse a duplicate?"* is answered in the first place anyone would look.
@@ -211,6 +236,24 @@ because it is rebuilt from it.
    where possible (`capture`, `queue`, `auth`, `billing`).
    If the user already named the features, skip straight to step 5.
 
+   **Then decide whether this project gets `docs/guidelines/`** — cross-cutting
+   house rules that apply to every feature (see *Guidelines* below). The gate is
+   whether the project has an interface a human uses:
+
+   ```sh
+   # any of these → it has a UI → offer guidelines with the ui-ux area
+   grep -lE '"(react|react-native|vue|svelte|@angular/core|solid-js)"' package.json 2>/dev/null
+   ls -d app pages src/routes src/screens src/components 2>/dev/null
+   ```
+
+   - **Has a UI** → scaffold guidelines, `ui-ux` area, and say why in one line.
+   - **Pure library, CLI or service** → do **not** scaffold it. An empty rulebook
+     in a project with no house rules is a folder people learn to ignore, and a
+     folder people ignore is worse than an absent one. Mention it exists and
+     move on; `--guideline-area api` is one command away when they earn a rule.
+   - Other areas (`api`, `data`, `testing`) are added **when a rule is earned**,
+     not up front. One area with real rules beats five empty ones.
+
 5. **Run the scaffolder** with the confirmed features. Migration (steps 1–2)
    comes first on purpose: the scaffolder is idempotent and reports `skip` for
    anything already in place, so moved files survive it untouched.
@@ -221,14 +264,18 @@ because it is rebuilt from it.
    `~/.claude/skills/flow-setup`:
    ```sh
    SKILL=~/.claude/skills/flow-setup     # or wherever this SKILL.md lives
-   "$SKILL/scripts/setup-flow.sh" --root . <feature> [<feature> ...]
+   "$SKILL/scripts/setup-flow.sh" --root . --guidelines <feature> [<feature> ...]
    ```
    If that path does not exist, find it:
    `find ~/.claude/skills -name flow-setup -maxdepth 2`.
 
    Flags: `--root <path>` scaffolds into a different project root;
    `--docs-dir <name>` uses a directory other than `docs` (use this when the
-   user wants `documentation/` or already has a `docs/` you agreed not to touch).
+   user wants `documentation/` or already has a `docs/` you agreed not to touch);
+   `--guidelines` creates `docs/guidelines/` with the `ui-ux` area, and
+   `--guideline-area <name>` (repeatable) adds others. Omit both when step 4
+   decided the project has no interface — the flag is opt-in precisely so an
+   empty rulebook is never the default.
    It is idempotent — existing files are left untouched and reported as `skip`.
    It also installs `docs/new-record.sh` and `docs/build-index.sh`; from here on
    those copies are the ones to use, and the ones the project's own docs name.
@@ -264,19 +311,62 @@ because it is rebuilt from it.
    and **How it works** while you are there — you have just read the code.
 
    This section is the source of `FEATURE-MAP.md`, so guessing here poisons the
-   map. Every path must exist; step 8 will tell you if it doesn't.
+   map. Every path must exist; step 9 will tell you if it doesn't.
 
-8. **Generate the read path and verify it.**
+8. **Propose the guidelines the code already follows.** *(only if step 4 chose
+   guidelines)* You have just read the whole codebase — you are in the best
+   position you will ever be in to notice the rules this project already obeys
+   without ever having written them down. Do **not** write them yourself. Scan,
+   propose, let the user confirm each one.
+
+   Look for a convention repeated in **three or more places**, where doing it
+   differently would be a bug rather than a preference:
+
+   ```
+     what you see, repeatedly                 candidate rule
+     ────────────────────────                 ──────────────
+     every mutation invalidates its query  ─► "a mutation invalidates every
+       before resolving                         query it can change, before it
+                                                reports success"
+     every destructive action behind a     ─► "a destructive action confirms,
+       confirm dialog                           naming what is destroyed"
+     every list has an explicit empty       ─► "a list renders an empty state;
+       state component                          never an empty container"
+     every form disables submit while       ─► "a submit is disabled while in
+       in flight                                flight, not just debounced"
+   ```
+
+   Present them as a table — *proposed rule · area · where you saw it (3 paths)*
+   — and write only the ones the user confirms:
+
+   ```sh
+   ./docs/new-record.sh guideline ui-ux "Data freshness"
+   ```
+
+   Then edit the created file: fill `**Applies to:**`, and replace each
+   `### <TOPIC>-n` placeholder with the real rule, its `**Because:**` (the
+   failure mode — a rule with no stated failure gets argued with, then ignored)
+   and its `**Source:**` (the file or PR where you saw the pattern). Delete the
+   unused placeholder rule; leaving `### DATA-FRESHNESS-2 — <the next rule>` in
+   the file burns an ID on nothing and IDs are never reused.
+
+   **Three rules that are real beat twelve that are aspirational.** A rule you
+   inferred from one call site is a guess; if the user has to correct half the
+   list, they stop reading the list. Anything you are unsure about goes in the
+   report as *"I saw this once — is it a rule?"*, not in the file.
+
+9. **Generate the read path and verify it.**
    ```sh
    ./docs/build-index.sh          # writes FEATURE-MAP.md and INDEX.md
    ./docs/build-index.sh --check  # must exit 0 before you report success
    ```
-   `--check` fails on three things: a generated file that is stale, a
-   `## Key files` path that does not exist, and a feature whose key files were
-   never filled in. All three are your bugs at this point — fix them, don't
-   report them as findings.
+   `--check` fails on: a generated file that is stale, a `## Key files` path
+   that does not exist, a feature whose key files were never filled in, and any
+   guideline rule ID that is malformed, wrongly prefixed, duplicated, or whose
+   topic slug collides with another area. All of them are your bugs at this
+   point — fix them, don't report them as findings.
 
-9. **Add the maintenance rules** to the project's `CLAUDE.md`, creating it if
+10. **Add the maintenance rules** to the project's `CLAUDE.md`, creating it if
    absent. The block is everything after the `---` in
    `references/claude-md-block.md` — append it whole:
    ```sh
@@ -287,14 +377,18 @@ because it is rebuilt from it.
    `--docs-dir`, replace `docs` throughout the block. A scaffold nobody updates
    becomes fiction within two weeks — this block is what keeps it alive.
 
-10. **Report** the tree (`find docs -type f | sort`), show the user
-   `ARCHITECTURE.md`'s outline, and state the four habits that keep it alive:
+11. **Report** the tree (`find docs -type f | sort`), show the user
+   `ARCHITECTURE.md`'s outline, and state the habits that keep it alive:
    - a PR that changes documented behaviour updates that doc **in the same PR**;
    - a decision record is earned when a **real alternative was rejected**;
    - a bug record is earned when the bug was **non-obvious** or the fix
      **changed a rule** — not for typos;
    - **overturning a decision edits two records, it never deletes one** — set
-     `status: superseded` / `superseded_by:` on the old, `supersedes:` on the new.
+     `status: superseded` / `superseded_by:` on the old, `supersedes:` on the new;
+   - **a guideline is earned on the second occurrence**, not the first — the
+     first time is a decision record. The flow nominates candidates as it works
+     (`flow-design` and `flow-review` write them into the task folder,
+     `flow-doc` promotes them), so the rulebook grows from real work on its own.
 
    Offer to wire `./docs/build-index.sh --check` into CI. It is the only part of
    this system that notices drift by itself.
@@ -307,6 +401,7 @@ because it is rebuilt from it.
 | `features/<f>/README.md` | **yes** — prose + `## Key files` | — |
 | `FEATURE-MAP.md`, `INDEX.md` | generated by script | — |
 | decision / bug records | only when there is one to write | shape only |
+| `guidelines/<area>/*.md` | only rules you saw ≥3× and the user confirmed | shape only |
 | `tasks/README.md` | — | scaffolded as-is |
 
 Records are the exception: **do not invent decision records to fill the tree.**

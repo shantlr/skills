@@ -10,6 +10,8 @@ docs/
 ├── build-index.sh      regenerates the two files above; --check verifies them
 ├── new-record.sh       creates a dated record from the right template
 ├── templates/          the shape of every record — copy, don't improvise
+├── guidelines/         house rules that apply everywhere — see guidelines/README.md
+│   └── <area>/<topic>.md   ui-ux/data-freshness.md, api/error-shapes.md, …
 ├── features/<f>/
 │   ├── README.md         what it is, how it works, + ## Key files
 │   ├── decisions/        why it is that way — YYYY-MM-DD-kebab-title.md
@@ -36,6 +38,8 @@ grows — they are **generated**, never hand-edited.
 | How does feature F work? | `features/F/README.md` |
 | Why is it built this way? | `INDEX.md` ▸ Decisions |
 | Has this broken before? | `INDEX.md` ▸ Bugs |
+| What rules must my change follow? | `guidelines/<area>/` |
+| What does `DATA-FRESHNESS-3` mean? | `INDEX.md` ▸ Guidelines |
 | What is being built next? | `../tasks/` (and `INDEX.md` ▸ Tasks) |
 
 ## Writing path
@@ -45,6 +49,7 @@ grows — they are **generated**, never hand-edited.
 | what a feature is / how it works | `features/<f>/README.md` | always — one page per feature |
 | why we chose this over that | `features/<f>/decisions/` | a real alternative was rejected |
 | a post-mortem | `features/<f>/bugs/` | the bug was non-obvious, reached a user, or changed a rule |
+| a rule for *every* case of a kind | `guidelines/<area>/<topic>.md` | the situation has now come up twice |
 | the shape of upcoming work | `../tasks/<date>-<slug>/design.md` | before the work starts |
 
 Not earned: typos, one-line nits, anything caught before merge, a decision that
@@ -54,6 +59,7 @@ never had an alternative.
 ./docs/new-record.sh decision queue   "Partial dedupe index"
 ./docs/new-record.sh bug      queue   "Orphan reclaim skipped attempts"
 ./docs/new-record.sh feature  billing "Billing"
+./docs/new-record.sh guideline ui-ux  "Data freshness"
 ./docs/build-index.sh                 # after any of the above
 ```
 
@@ -75,6 +81,10 @@ never had an alternative.
    lists the 3–7 files you would open first. That section is the source of
    `FEATURE-MAP.md`.
 6. **Link, don't restate.** One fact, one home.
+7. **Guideline rule IDs are permanent.** `DATA-FRESHNESS-3` means one rule
+   forever. Never renumber, never reuse; strike a retired rule through in place
+   and point at its replacement. Every review comment that ever cited it still
+   has to resolve.
 
 ## Keeping it honest
 
@@ -83,7 +93,9 @@ never had an alternative.
 ```
 
 Exits non-zero if a generated file is stale, if a `## Key files` path no longer
-exists, or if a feature never got its key files filled in. Wire it into CI — it
+exists, if a feature never got its key files filled in, or if a guideline rule
+ID is malformed, wrongly prefixed, duplicated, or shares a topic slug with
+another area. Wire it into CI — it
 is the only part of this system that can notice the docs drifting from the code
 on its own.
 

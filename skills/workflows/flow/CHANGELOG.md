@@ -3,6 +3,17 @@
 All notable changes to the `flow` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [2.1.0] - 2026-09-19
+
+### Added
+- `docs/guidelines/` is now a first-class input and output of the pipeline:
+  read by stage 1 as design constraints, by stage 3 when building subagent
+  prompts, and by stage 4 for conformance — and written only by stage 5. Stages
+  1 and 4 nominate candidate rules into their own task artifacts; the standing
+  "only stage 5 writes into `docs/`" rule covers `docs/guidelines/` too.
+
+---
+
 ## [2.0.0] - 2026-09-19
 
 ### Changed

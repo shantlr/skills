@@ -4,6 +4,38 @@ All notable changes to the `flow-setup` skill (formerly `setup-docs`) are
 documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com), newest first.
 
+## [2.1.0] - 2026-09-19
+
+### Added
+- **`docs/guidelines/` — a rulebook for the conventions a project accumulates.**
+  Cross-cutting rules that apply to every feature and therefore cannot live
+  under one: *never render data that has silently gone stale*, *a destructive
+  action names what it destroys*, *a failed mutation rolls back*. Organised as
+  `guidelines/<area>/<topic>.md` with `ui-ux` as the first-class area.
+- **Permanent, citable rule IDs.** `ui-ux/data-freshness.md` numbers its rules
+  `DATA-FRESHNESS-1`, `-2`, … so a design can bind to a rule and a review can
+  cite one. IDs are never renumbered or reused; a retired rule is struck
+  through in place. `build-index.sh --check` now fails on a malformed, wrongly
+  prefixed or duplicated ID, and on two areas claiming the same topic name.
+- `./docs/new-record.sh guideline <area> "<Topic>"` creates a topic file with
+  its rule IDs pre-seeded.
+- `setup-flow.sh --guidelines` / `--guideline-area <name>` scaffold the tree.
+  **Opt-in:** the skill offers it only when the project has a UI, because an
+  empty rulebook is a folder people learn to ignore.
+- After reading the codebase, the skill now **proposes the rules the project
+  already follows** — a convention repeated in three or more places — and
+  writes only the ones you confirm.
+- `docs/INDEX.md` gained a generated `## Guidelines` section; the `CLAUDE.md`
+  block now tells every agent to read the applicable area *before* writing
+  code, and to cite rules by ID.
+
+### Changed
+- Existing docs trees are unaffected: without a `docs/guidelines/` directory,
+  `INDEX.md` is byte-identical to before, so upgrading does not report your
+  project as stale.
+
+---
+
 ## [2.0.0] - 2026-09-19
 
 ### Changed

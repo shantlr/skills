@@ -7,11 +7,12 @@
 #                 into one lookup table. The README is the source; this file is
 #                 derived, so the two can never disagree.
 # INDEX.md        every decision and bug record, grouped by feature, read from
-#                 each record's YAML frontmatter, plus the task folders under
-#                 ../tasks/.
+#                 each record's YAML frontmatter, plus every guideline topic
+#                 under guidelines/ and the task folders under ../tasks/.
 #
 # --check  verify instead of write: every path listed under "## Key files" must
-#          exist, and every generated file must already be up to date.
+#          exist, every generated file must already be up to date, and every
+#          guideline rule ID must be well-formed, unique and correctly prefixed.
 #          Exits non-zero otherwise, so CI can run it.
 set -euo pipefail
 
@@ -138,6 +139,32 @@ cell() {
 # a different problem from "this file moved".
 is_placeholder() { case "$1" in src/path/to/*) return 0 ;; *) return 1 ;; esac; }
 
+# guideline_files — every guidelines/<area>/<topic>.md, sorted. README.md is the
+# area index, not a topic, so it is excluded by depth AND by name.
+guideline_files() {
+  [ -d "$DOCS/guidelines" ] || return 0
+  find "$DOCS/guidelines" -mindepth 2 -maxdepth 2 -name '*.md' 2>/dev/null \
+    | grep -v '/README\.md$' | sort || true
+}
+
+# rule_ids <file> — the ID of every "### <ID> — …" rule heading, in order.
+# A struck-through heading (### ~~FORMS-2~~ …) still counts: a retired rule
+# keeps its number precisely so the number is never handed out again.
+rule_ids() {
+  awk '
+    /^[[:space:]]*```/ { fence = !fence; next }
+    !fence && /^###[[:space:]]/ {
+      line = $0
+      sub(/^###[[:space:]]+/, "", line)
+      gsub(/~~/, "", line)
+      sub(/[[:space:]].*$/, "", line)
+      sub(/[—–-]+$/, "", line)
+      if (line ~ /^[A-Z0-9]+(-[A-Z0-9]+)*-[0-9]+$/) print line
+      else print "!" line
+    }
+  ' "$1"
+}
+
 # title <file> — first top-level heading, fences ignored.
 title() {
   awk '
@@ -221,6 +248,36 @@ EOF
   [ "$printed_any" -eq 1 ] || printf '_None yet._\n\n'
 }
 
+guidelines_table() {
+  local files; files="$(guideline_files)"
+  if [ -z "$files" ]; then
+    printf '_None yet._\n\n'
+    return 0
+  fi
+  printf '| Topic | Area | Rules | Status | Tags |\n| --- | --- | --- | --- | --- |\n'
+  local file t area status tags ids n rel
+  while IFS= read -r file; do
+    [ -n "$file" ] || continue
+    t="$(title "$file")"; [ -n "$t" ] || t="$(basename "$file" .md)"
+    area="$(frontmatter "$file" area)"
+    [ -n "$area" ] || area="$(basename "$(dirname "$file")")"
+    status="$(frontmatter "$file" status)"
+    tags="$(frontmatter "$file" tags)"
+    ids="$(rule_ids "$file")"
+    n="$(printf '%s' "$ids" | grep -c '[^[:space:]]' || true)"
+    rel="guidelines/$(basename "$(dirname "$file")")/$(basename "$file")"
+    # The ID prefix is the citation key; showing it here is what makes a review
+    # comment like "violates DATA-FRESHNESS-3" resolvable from the index alone.
+    printf '| [%s](./%s) | %s | %s (`%s-n`) | %s | %s |\n' \
+      "$(cell "$t")" "$rel" "$(cell "$area")" "$n" \
+      "$(basename "$file" .md | tr '[:lower:]' '[:upper:]')" \
+      "$(cell "$status")" "$(cell "$tags")"
+  done <<EOF
+$files
+EOF
+  printf '\n'
+}
+
 build_index() {
   printf '%s\n\n' "$BANNER"
   cat <<EOF
@@ -239,6 +296,16 @@ EOF
   records_table decisions
   printf '## Bugs\n\n'
   records_table bugs
+  # Emitted only when the project opted into guidelines. A tree scaffolded
+  # without them keeps its INDEX.md byte-identical, so upgrading this script
+  # does not report every existing project as stale.
+  if [ -d "$DOCS/guidelines" ]; then
+    printf '## Guidelines\n\n'
+    printf 'Cross-cutting rules that apply to every feature. Cite a rule by ID\n'
+    printf '(`DATA-FRESHNESS-3`); IDs are permanent and never reused — see\n'
+    printf '[guidelines/README.md](./guidelines/README.md).\n\n'
+    guidelines_table
+  fi
   local tasks; tasks="$(find "$ROOT/tasks" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort || true)"
   printf '## Tasks\n\n'
   printf 'Units of work, newest last. Each folder holds `design.md`, `plan.md`\n'
@@ -311,6 +378,50 @@ if [ -n "$unfilled" ]; then
   echo "unfilled '## Key files':$unfilled" >&2
   [ "$CHECK" -eq 1 ] && rc=1
 fi
+
+# Guideline rule IDs are the citation key of the whole system: a review comment
+# saying "violates DATA-FRESHNESS-3" is worthless if that ID is ambiguous,
+# missing, or silently renumbered. Verify four things, always (not just under
+# --check): the topic slug is unique across areas, every rule heading is a
+# well-formed ID, the prefix matches the filename, and no number repeats.
+seen_topics=""
+gl_bad=0
+while IFS= read -r gf; do
+  [ -n "$gf" ] || continue
+  slug="$(basename "$gf" .md)"
+  case " $seen_topics " in
+    *" $slug "*)
+      echo "duplicate topic: '$slug' appears in two areas — rule IDs would be ambiguous" >&2
+      gl_bad=$((gl_bad + 1)) ;;
+    *) seen_topics="$seen_topics $slug" ;;
+  esac
+  want="$(printf '%s' "$slug" | tr '[:lower:]' '[:upper:]')"
+  seen_ids=""
+  while IFS= read -r id; do
+    [ -n "$id" ] || continue
+    case "$id" in
+      "!"*)
+        echo "bad rule heading in ${gf#"$ROOT"/}: '${id#!}' is not a <TOPIC>-<n> ID" >&2
+        gl_bad=$((gl_bad + 1)); continue ;;
+    esac
+    case "$id" in
+      "$want"-*) ;;
+      *) echo "wrong prefix in ${gf#"$ROOT"/}: '$id' should start with '$want-'" >&2
+         gl_bad=$((gl_bad + 1)) ;;
+    esac
+    case " $seen_ids " in
+      *" $id "*)
+        echo "duplicate rule id in ${gf#"$ROOT"/}: '$id' — IDs are permanent, never reused" >&2
+        gl_bad=$((gl_bad + 1)) ;;
+      *) seen_ids="$seen_ids $id" ;;
+    esac
+  done <<EOF
+$(rule_ids "$gf")
+EOF
+done <<EOF
+$(guideline_files)
+EOF
+[ "$gl_bad" -eq 0 ] || rc=1
 
 emit build_feature_map FEATURE-MAP.md || rc=1
 emit build_index INDEX.md || rc=1

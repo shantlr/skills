@@ -1,7 +1,7 @@
 ---
 name: flow-design
 description: Stage 1 of the flow workflow — scans the codebase for facts, grills the user until every branch of the idea is decided, compares approaches, and writes a full technical design (architecture, data model, interfaces, failures, tests) to the task folder tasks/YYYY-MM-DD-<slug>/design.md. You MUST use this before any creative work — new feature, new component, changed behavior. Use when the user says "brainstorm", "grill me", "let's think this through", "design this", "how should we build this", "architecture", or hands over a vague idea. The only stage of the flow that talks to the user.
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Flow / Design: grill until crystal clear, then specify it
@@ -38,16 +38,45 @@ Explore, in parallel subagents when the codebase is large:
 - **Constraints** — schema, API contracts, auth model, dependencies, build.
 - **Closest analogue** — find the most similar existing feature. Read it end to end.
 - **Blast radius** — what will this touch, what depends on it?
+- **Standing guidelines** — see below.
 
 Post a ≤5-line findings summary with file paths:
 
 > **Codebase context:** auth is JWT via `src/middleware/auth.ts`; Prisma +
 > Postgres; closest analogue is `src/modules/roles/` (repository pattern);
-> no tests in this module.
+> no tests in this module. Guidelines in play: `ui-ux/forms`, `ui-ux/data-freshness`.
 
 These findings pre-answer factual questions and become the *evidence* in your
 recommendations. Designing against a stale finding is this stage's most common
 failure — verify, don't assume.
+
+### Load the guidelines that apply
+
+Check for `docs/guidelines/`. If it does not exist, skip this silently — never
+scaffold one, that is `flow-setup`'s job and it is user-invoked only.
+
+If it does, read `docs/INDEX.md`'s `## Guidelines` section, then read every
+topic file in each **relevant area**. An area is relevant if the change touches
+it — any UI work at all loads all of `ui-ux/`; an endpoint change loads `api/`.
+When in doubt, load it; a topic file is short.
+
+```
+ docs/INDEX.md ──► ## Guidelines ──► docs/guidelines/ui-ux/forms.md
+                                          │
+                                          └─► ### FORMS-3 — Validate on blur…
+                                                 **Because:** …
+```
+
+Active rules (not struck through) are **constraints on the design, not
+suggestions.** The design must not propose behaviour that contradicts one. If
+it genuinely must, that is an explicit exception: name the rule ID, say why
+this case is different, and write it into `## Decisions`. Silent contradiction
+is the failure mode — the rule exists because the product already paid for it
+once.
+
+Relevant rules also **shrink the grilling**: never ask a question a guideline
+already answers. Cite the ID and move on — "per `DATA-FRESHNESS-2`, stale lists
+refresh on focus; not asking" — and record it as decided.
 
 ## Phase 1 — Grill every branch
 
@@ -113,6 +142,34 @@ Adapt the order to what the user says, but do not finish until all are covered:
 Push back on vagueness: "we'll figure it out later" → "what specifically? let's
 nail it now." Surface conflicts explicitly when two answers disagree.
 
+### Nominate guideline candidates
+
+Some answers are not about this feature at all. When grilling settles a rule
+that would hold for *every* case of its kind — "we never block the UI on an
+optimistic write" — it is a guideline candidate, not a design detail. Burying
+it in the design means the next feature re-litigates it from scratch.
+
+Tell the user you're flagging it, and record it in the design under
+`## Guideline candidates` — one line each:
+
+```markdown
+- **ui-ux** — Never block the UI on an optimistic write; roll back on failure.
+  Generalises: every mutation in the app is user-initiated and reversible.
+```
+
+Three parts: the rule as an **imperative sentence**, the **area**, and **why it
+generalises**. You only nominate — `flow-doc` (stage 5) decides and writes the
+real topic file with its permanent ID.
+
+| Thought | Verdict |
+| --- | --- |
+| "Applies to any form we ever build." | Guideline candidate. |
+| "We chose Postgres arrays over a join table *here*." | Decision record — it's in `## Decisions`, leave it. |
+| "This is a good idea, we should always do it." | Guidelines are **earned**, not invented. If it hasn't come up in real work, it's not a candidate. |
+
+Over-nomination is the failure mode: a pile of speculative rules makes the real
+ones unreadable, and every future design has to load them. Nominate two, not ten.
+
 **Stop grilling when** every branch terminates and no open decision blocks
 another. If you are unsure whether something is resolved, it isn't.
 
@@ -177,6 +234,9 @@ Date: YYYY-MM-DD
 ## Codebase findings
 | Finding | Evidence (path) |
 
+## Guidelines applied
+| Rule ID | Rule | How this design satisfies it (or argued exception) |
+
 ## Decisions
 | # | Decision | Chosen | Why | Rejected alternatives |
 
@@ -194,7 +254,11 @@ Date: YYYY-MM-DD
 ## Test strategy
 ## Rollout & rollback
 ## Open risks
+## Guideline candidates
 ```
+
+Omit `## Guidelines applied` and `## Guideline candidates` if there is no
+`docs/guidelines/` tree.
 
 The `## Decisions` table is the decisions log — every downstream stage checks
 itself against it, so record **rejected alternatives** too. Future readers need
@@ -211,6 +275,8 @@ Commit as `docs(tasks): add <slug> design`, then hand off to `flow-plan-implem`.
   "A service layer will handle this" is not a design.
 - **Reuse beats invention** — every new abstraction needs a sentence on why an
   existing one didn't fit.
+- **Active guidelines bind.** Contradicting one is an argued exception in
+  `## Decisions`, never a silent choice.
 - **Design the failures.** Happy-path-only designs get rewritten during implem.
 - **Nothing implicit.** Undecided → `## Open risks` *and* you ask about it now.
 
@@ -224,3 +290,7 @@ Commit as `docs(tasks): add <slug> design`, then hand off to `flow-plan-implem`.
 | "I'll write 'a service layer handles this' and let implem decide." | Implem is parallel agents with nobody to ask. Vague seams serialize the whole build. |
 | "I don't need to check whether that finding is still true." | Designing against a stale scan is this stage's most common failure. Verify. |
 | "I'll skip the failure paths, the happy path is the hard part." | Happy-path-only designs get rewritten during implementation. |
+| "This is UI work, I don't need the `ui-ux/` guidelines." | Any UI change loads all of `ui-ux/`. Designing against a rule the product already settled is a rewrite in review. |
+| "The guideline says X but Y is nicer here." | Then write the exception and argue it. An unmentioned deviation reads as an oversight and gets reverted. |
+| "There's no `docs/guidelines/`, I'll create one." | Never. That is `flow-setup`, user-invoked only. Skip silently. |
+| "Every decision we made is worth a guideline." | Then none of them are readable. Feature-specific → decision record. Guidelines are earned. |

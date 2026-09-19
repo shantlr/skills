@@ -3,6 +3,19 @@
 All notable changes to the `flow-implem` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [2.1.0] - 2026-09-19
+
+### Added
+- **Subagents are now handed the house rules.** When `docs/guidelines/` exists,
+  the applicable rules are pasted into each dispatch prompt with their IDs — a
+  subagent cannot browse the tree on a hunch, it only knows what it is given,
+  which is why it used to reinvent behaviour the design had already settled.
+- The design's `## Guidelines applied` section travels with the prompt and wins
+  over a raw reading of a rule: an exception argued once must not be silently
+  re-decided by a subagent.
+
+---
+
 ## [2.0.0] - 2026-09-19
 
 ### Changed

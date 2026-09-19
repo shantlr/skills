@@ -1,7 +1,7 @@
 ---
 name: flow-implem
 description: Stage 3 of the flow workflow — executes a wave-structured implementation plan by dispatching every file-disjoint task in a wave to concurrent subagents, verifying at each wave barrier and committing one task per commit. Use when the plan declares Wave / Owns / Verify per task, typically tasks/*/plan.md from flow-plan-implem, and the user says "implement the plan", "build it", or "run these tasks in parallel". For a plain checklist plan without wave and ownership metadata, use superpowers-subagent-driven-development instead.
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Flow / Implem: run every wave as wide as it will go
@@ -72,6 +72,7 @@ Give each agent, and nothing more:
 - its task block **verbatim** from the plan
 - the design sections its task references
 - the preflight commands
+- **the house rules that apply to its task** (see below)
 - these standing constraints:
 
 > - Write **only** the files in your `Owns` list. Read anything.
@@ -96,6 +97,26 @@ Give each agent, and nothing more:
 > - Report: files written, the **verbatim** verify output (not a summary),
 >   and anything you had to leave undone. Never write "should pass" or "looks
 >   correct" — report only a result you ran and read.
+
+**House rules into the prompt.** If `docs/guidelines/` exists, pick the topic
+files that apply to each task — any task that touches UI gets the whole
+`ui-ux/` area; a task touching endpoints gets `api/`, and so on — and **paste
+the matching `### <TOPIC-ID>-<n>` headings and their rule text, verbatim, into
+that agent's dispatch prompt**, each with its ID. A subagent cannot go browse
+the tree on a hunch; it only knows what you hand it. Untargeted rules are
+noise — a backend task does not need the forms rules.
+
+Then add: *"These are house rules, not suggestions. Follow them by ID. If your
+task cannot satisfy one, stop and report it rather than deviating silently."*
+
+The design's **`## Guidelines applied`** section outranks a raw reading of the
+rule. Stage 1 already listed each applicable rule and how this design satisfies
+it — or why it is explicitly excepted. Paste that section alongside the rules
+and say so: where the two disagree, the design wins. That exception was argued
+once already and must not be silently re-decided inside a subagent.
+
+No `docs/guidelines/` tree? Nothing to pass — dispatch as normal. **Never
+scaffold one**; that is not this stage's job.
 
 Serial exceptions from the plan's **Do not parallelize** list — migrations,
 codegen, dependency installs, repo-wide formatters, port-binding tasks — you run

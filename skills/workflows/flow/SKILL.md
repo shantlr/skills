@@ -1,7 +1,7 @@
 ---
 name: flow
 description: Runs the full feature workflow end to end — design (scan, grill, specify), then plan, implement, review and document — handing off markdown artifacts in a per-task folder under tasks/. Use this when the user asks to "flow" something, says "run the flow", "full flow", "take this from idea to PR", "do the whole workflow", or describes a feature and wants it built properly rather than quick-and-dirty. Also use to resume a half-finished flow from its artifacts in tasks/YYYY-MM-DD-<slug>/.
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Flow: idea → design → plan → implement → review → document
@@ -24,6 +24,10 @@ order and carries artifacts between them.
     design.md  plan.md  review.md
                     │
                     └──► docs/  ← what survives the task (stage 5)
+                           features/  decisions/
+                           guidelines/<area>/<topic>.md
+                             ▲ read by 1 (constraints), 3 (dispatch prompts),
+                               4 (conformance) — written only by 5
 ```
 
 **Two homes, on purpose.** `tasks/<date>-<slug>/` is the record of *this piece
@@ -73,7 +77,7 @@ a missing credential. Then ask (batched, with a recommendation) and keep going.
    | 2 | `flow-plan-implem` | `plan.md` exists |
    | 3 | `flow-implem` | all plan tasks checked |
    | 4 | `flow-review` | never — always review |
-   | 5 | `flow-doc` | repo has no `docs/features/` tree |
+   | 5 | `flow-doc` | repo has neither a `docs/features/` nor a `docs/guidelines/` tree |
 
 4. **Between stages, do a 3-line handoff.** State: artifact written, the single
    most important decision in it, and what the next stage will do with it. No
@@ -120,5 +124,7 @@ asking inline.
 - **Never skip review.**
 - **`tasks/` is the work, `docs/` is the system.** Stages 1–4 write their
   artifacts only into the task folder (stage 3 also writes code, naturally).
-  Only stage 5 may write into `docs/`.
+  Only stage 5 may write into `docs/` — **including `docs/guidelines/`**.
+  Stages 1 and 4 read the rules and *nominate* new ones into their own
+  artifact; neither creates nor edits a topic file.
 - **Report root causes, not just fixes.**

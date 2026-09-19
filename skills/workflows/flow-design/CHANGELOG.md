@@ -3,6 +3,24 @@
 All notable changes to the `flow-design` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [2.1.0] - 2026-09-19
+
+### Added
+- **Active guidelines now bind the design.** Stage 1 loads the topics in
+  `docs/guidelines/` that apply to the change (any UI work loads all of
+  `ui-ux/`) and treats each active rule as a constraint. Contradicting one is
+  allowed but must be written down as an argued exception — never silently.
+- **Grilling got shorter.** A question a guideline already answers is not asked;
+  the design cites the rule ID and moves on.
+- `design.md` gained `## Guidelines applied` (each applicable rule and how it is
+  satisfied or excepted) and `## Guideline candidates` — rules the conversation
+  settled that are clearly not specific to this feature. Stage 1 only nominates;
+  `flow-doc` writes them.
+- No `docs/guidelines/` tree → the whole thing is skipped silently. It is never
+  scaffolded here.
+
+---
+
 ## [2.0.0] - 2026-09-19
 
 ### Changed

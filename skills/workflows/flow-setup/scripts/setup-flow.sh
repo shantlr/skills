@@ -2,10 +2,11 @@
 # Scaffold a project docs/ tree. Idempotent: never overwrites an existing file.
 #
 #   setup-flow.sh [--root <path>] [--docs-dir <name>] [--no-tasks]
+#                 [--guidelines] [--guideline-area <name>]
 #                 <feature> [<feature> ...]
 #
 # Example:
-#   setup-flow.sh --root . capture queue auth billing
+#   setup-flow.sh --root . --guidelines capture queue auth billing
 #
 # Creates <root>/<docs-dir>/ and, unless --no-tasks, <root>/tasks/ — the two
 # trees the `flow` skills read and write. tasks/ is always a sibling of the
@@ -14,6 +15,13 @@
 # --no-tasks  skip the tasks/ scaffold. Use when the project already has a
 #             tasks/ directory meaning something else (a task runner, fixtures);
 #             the script refuses to scaffold into a foreign one either way.
+#
+# --guidelines        create docs/guidelines/ — cross-cutting rules that apply
+#                     to every feature (UI/UX behaviour, API shape, data).
+#                     Defaults to the `ui-ux` area. OFF by default: a project
+#                     with no interface and no house conventions does not need
+#                     an empty rulebook.
+# --guideline-area X  add area X (repeatable); implies --guidelines.
 set -euo pipefail
 
 # Ranges like [a-z] follow the locale's COLLATION order, not ASCII: under
@@ -27,6 +35,8 @@ ASSETS="$(cd "$(dirname "${BASH_SOURCE[0]}")/assets" && pwd)"
 ROOT="."
 DOCS_DIR="docs"
 NO_TASKS=0
+GUIDELINES=0
+AREAS=()
 FEATURES=()
 
 while [ $# -gt 0 ]; do
@@ -34,6 +44,9 @@ while [ $# -gt 0 ]; do
     --root)     ROOT="${2:?--root needs a path}"; shift 2 ;;
     --docs-dir) DOCS_DIR="${2:?--docs-dir needs a name}"; shift 2 ;;
     --no-tasks) NO_TASKS=1; shift ;;
+    --guidelines) GUIDELINES=1; shift ;;
+    --guideline-area)
+      GUIDELINES=1; AREAS+=("${2:?--guideline-area needs a name}"); shift 2 ;;
     -h|--help)  usage; exit 0 ;;
     -*)         echo "unknown flag: $1" >&2; exit 2 ;;
     *)          FEATURES+=("$1"); shift ;;
@@ -54,6 +67,20 @@ for f in "${FEATURES[@]}"; do
     *[!a-z0-9-]*) echo "error: feature '$f' must be lowercase kebab-case" >&2; exit 2 ;;
   esac
 done
+
+# Same treatment for guideline areas — they are path components too. Default the
+# list only after validation, so `--guidelines` alone still yields `ui-ux`.
+# `${AREAS[@]}` on an empty array is an unbound-variable error under `set -u` in
+# bash 3.2 (still the /bin/bash on macOS), hence the length guard.
+if [ "$GUIDELINES" -eq 1 ] && [ ${#AREAS[@]} -eq 0 ]; then AREAS=("ui-ux"); fi
+if [ ${#AREAS[@]} -gt 0 ]; then
+  for a in "${AREAS[@]}"; do
+    case "$a" in
+      "")           echo "error: guideline area cannot be empty" >&2; exit 2 ;;
+      *[!a-z0-9-]*) echo "error: area '$a' must be lowercase kebab-case" >&2; exit 2 ;;
+    esac
+  done
+fi
 
 DOCS="$ROOT/$DOCS_DIR"
 
@@ -87,6 +114,18 @@ copy "$ASSETS/architecture.md" "$DOCS/ARCHITECTURE.md"
 for t in feature bug decision architecture; do
   copy "$ASSETS/$t.md" "$DOCS/templates/$t.md"
 done
+
+# Cross-cutting rules: docs/guidelines/<area>/<topic>.md. Opt-in — see the
+# --guidelines flag. The template ships with it, not with the base scaffold, so
+# a project that declined guidelines has no dangling template inviting them.
+if [ "$GUIDELINES" -eq 1 ]; then
+  copy "$ASSETS/guidelines-readme.md" "$DOCS/guidelines/README.md"
+  copy "$ASSETS/guideline.md"         "$DOCS/templates/guideline.md"
+  for a in "${AREAS[@]}"; do
+    mkdir -p "$DOCS/guidelines/$a"
+    gitkeep "$DOCS/guidelines/$a"
+  done
+fi
 
 # The project owns its helpers; docs/README.md references both by path.
 copy "$(dirname "$ASSETS")/new-record.sh"  "$DOCS/new-record.sh"  755
@@ -141,7 +180,7 @@ done
 # else, rewrite those references or every path the new docs advertise is wrong.
 if [ "$DOCS_DIR" != "docs" ]; then
   for m in "$DOCS/README.md" "$DOCS/ARCHITECTURE.md" "$DOCS"/templates/*.md \
-           "$DOCS"/features/*/README.md; do
+           "$DOCS"/guidelines/README.md "$DOCS"/features/*/README.md; do
     [ -f "$m" ] || continue
     tmp="$m.retarget.$$"
     sed -e "s|\./docs/|./$DOCS_DIR/|g" -e "s|(\./docs)|(./$DOCS_DIR)|g" \

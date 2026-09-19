@@ -26,6 +26,7 @@ is and how it fits together. From there:
 | Why is it built this way? | [docs/INDEX.md](./docs/INDEX.md) ▸ Decisions *(generated)* |
 | Has this broken before? | [docs/INDEX.md](./docs/INDEX.md) ▸ Bugs |
 | How does feature F work? | `docs/features/F/README.md` |
+| **What rules must my change follow?** | **`docs/guidelines/<area>/`** *(read before writing UI)* |
 | How did we build X / what was planned? | `tasks/YYYY-MM-DD-<slug>/` |
 
 | You are writing… | It goes in |
@@ -33,7 +34,33 @@ is and how it fits together. From there:
 | what a feature is / how it works | `docs/features/<feature>/README.md` |
 | why we chose this over that | `docs/features/<feature>/decisions/YYYY-MM-DD-*.md` |
 | a post-mortem on a real bug | `docs/features/<feature>/bugs/YYYY-MM-DD-*.md` |
+| a rule for *every* case of a kind | `docs/guidelines/<area>/<topic>.md` |
 | the shape of upcoming work | `tasks/YYYY-MM-DD-<slug>/design.md` |
+
+**Guidelines are house rules, and they are binding.** `docs/guidelines/` holds
+the conventions this project has settled on — how stale data is handled, what a
+destructive action must confirm, how a failed mutation rolls back. They apply to
+**every** feature, which is why they do not live under one.
+
+```
+   feature doc          decision record        guideline
+   ───────────          ───────────────        ─────────
+   how ONE thing        why ONE choice         how EVERY case
+   works, today         was made, once         of a kind is handled
+```
+
+- **Read the applicable area before writing code**, not after. Any UI change
+  means every topic in `docs/guidelines/ui-ux/`.
+- **Cite rules by ID** — `DATA-FRESHNESS-3`, the topic filename uppercased plus
+  the rule's number. `docs/INDEX.md` ▸ Guidelines lists every topic.
+- **Deviating is allowed; deviating silently is not.** Write the exception and
+  its reason where the change is designed.
+- **A guideline is earned, not invented** — the situation came up in real work,
+  usually twice. A one-off choice is a decision record. Padding the rulebook
+  with rules nobody hit is how it stops being read.
+- **IDs are permanent.** Never renumber, never reuse. A retired rule stays in
+  place, struck through, pointing at its replacement — every review comment that
+  ever cited it must still resolve.
 
 **Create records with `./docs/new-record.sh`** — it stamps the date, slugifies
 the title, seeds the frontmatter, prints the path, and never overwrites. Then
@@ -43,6 +70,7 @@ regenerate the index:
 ./docs/new-record.sh decision <feature> "Partial dedupe index"
 ./docs/new-record.sh bug      <feature> "Orphan reclaim skipped attempts"
 ./docs/new-record.sh feature  <feature> "<Feature>"
+./docs/new-record.sh guideline ui-ux    "Data freshness"
 ./docs/build-index.sh                   # after any of the above
 ```
 
@@ -56,8 +84,9 @@ regenerate the index:
 - **Overturning a decision edits two records; it never deletes one.** Set
   `status: superseded` and `superseded_by:` on the old, `supersedes:` on the new.
 - **`./docs/build-index.sh --check` must pass.** It fails on a stale generated
-  file, a `## Key files` path that no longer exists, or a feature whose key
-  files were never filled in.
+  file, a `## Key files` path that no longer exists, a feature whose key files
+  were never filled in, or a guideline rule ID that is malformed, wrongly
+  prefixed, duplicated, or whose topic slug collides with another area.
 
 - **A PR that changes documented behaviour updates that doc in the same PR.**
   Docs updated retroactively are fiction.

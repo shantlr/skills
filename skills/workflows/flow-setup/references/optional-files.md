@@ -1,6 +1,6 @@
 # The optional top-level files
 
-`setup-docs` writes `ARCHITECTURE.md` (what the system *is*) and generates
+`flow-setup` writes `ARCHITECTURE.md` (what the system *is*) and generates
 `FEATURE-MAP.md` and `INDEX.md`. The three files below describe **intent and
 progress** instead, which needs a human's judgement about sequencing and about
 how honest the percentages are. Write them by hand when the project needs them.

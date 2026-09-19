@@ -3,12 +3,15 @@
 # authors (parallel agents, separate worktrees) never collide.
 #
 #   new-record.sh [--root <path>] [--docs-dir <name>] [--date YYYY-MM-DD] \
-#                 <decision|bug|plan|feature> <feature|-> <title>
+#                 <decision|bug|feature> <feature> <title>
 #
 #   new-record.sh decision queue "Partial dedupe index"
 #     -> docs/features/queue/decisions/2026-09-13-partial-dedupe-index.md
-#   new-record.sh plan - "Extract the queue"
-#     -> docs/plans/2026-09-13-extract-the-queue.md
+#   new-record.sh bug queue "Duplicate accepted after restart"
+#     -> docs/features/queue/bugs/2026-09-13-duplicate-accepted-after-restart.md
+#
+# Plans are NOT docs records — a unit of work lives in tasks/<date>-<slug>/
+# (design.md, plan.md, review.md), written by the `flow` skills.
 #
 # Prints the created path on stdout and nothing else, so it can be captured:
 #   f=$(new-record.sh decision queue "…")
@@ -65,7 +68,7 @@ DOCS_DIR="${DOCS_DIR:-$DEF_DOCS_DIR}"
 
 KIND="${1:-}"; FEATURE="${2:-}"
 [ -n "$KIND" ] && [ -n "$FEATURE" ] && [ $# -ge 3 ] || {
-  echo "usage: new-record.sh <decision|bug|plan|feature> <feature|-> <title>" >&2; exit 2; }
+  echo "usage: new-record.sh <decision|bug|feature> <feature> <title>" >&2; exit 2; }
 shift 2
 
 # Flags are only honoured before the positionals; catching them after is the
@@ -87,17 +90,21 @@ case "$DATE" in
 esac
 
 DOCS="$ROOT/$DOCS_DIR"
-[ -d "$DOCS" ] || { echo "error: no $DOCS — run setup-docs.sh first" >&2; exit 2; }
+[ -d "$DOCS" ] || { echo "error: no $DOCS — run setup-flow.sh first" >&2; exit 2; }
+
+# Validate the KIND before the feature name, so that a retired kind reports
+# itself ("kind must be…") instead of the misleading "'plan' needs a feature".
+case "$KIND" in
+  decision|bug|feature) ;;
+  *) echo "error: kind must be decision|bug|feature (plans live in tasks/, not docs/)" >&2; exit 2 ;;
+esac
 
 # The feature name becomes a path component, so it is validated for EVERY kind
-# that uses it — not just `feature`. Without this, `decision "../../.."` writes
-# the record outside the repository.
-if [ "$KIND" != "plan" ]; then
-  case "$FEATURE" in
-    -|"")         echo "error: '$KIND' needs a feature name" >&2; exit 2 ;;
-    *[!a-z0-9-]*) echo "error: feature '$FEATURE' must be lowercase kebab-case" >&2; exit 2 ;;
-  esac
-fi
+# — without this, `decision "../../.."` writes the record outside the repository.
+case "$FEATURE" in
+  -|"")         echo "error: '$KIND' needs a feature name" >&2; exit 2 ;;
+  *[!a-z0-9-]*) echo "error: feature '$FEATURE' must be lowercase kebab-case" >&2; exit 2 ;;
+esac
 
 # "Partial dedupe index!" -> "partial-dedupe-index".
 # `tr` and `sed` are line-oriented, so newlines are collapsed FIRST — otherwise
@@ -114,9 +121,8 @@ esac
 case "$KIND" in
   decision) DIR="$DOCS/features/$FEATURE/decisions"; TPL="$TEMPLATES/decision.md" ;;
   bug)      DIR="$DOCS/features/$FEATURE/bugs";      TPL="$TEMPLATES/bug.md" ;;
-  plan)     DIR="$DOCS/plans";                       TPL="$TEMPLATES/plan.md" ;;
   feature)  DIR="$DOCS/features/$FEATURE";           TPL="$TEMPLATES/feature.md" ;;
-  *) echo "error: kind must be decision|bug|plan|feature" >&2; exit 2 ;;
+  *) echo "error: kind must be decision|bug|feature (plans live in tasks/, not docs/)" >&2; exit 2 ;;
 esac
 
 if [ "$KIND" = "feature" ]; then
@@ -128,9 +134,7 @@ if [ "$KIND" = "feature" ]; then
   done
   OUT="$DIR/README.md"
 else
-  if [ "$KIND" != "plan" ]; then
-    [ -d "$DIR" ] || { echo "error: unknown feature '$FEATURE' ($DIR missing)" >&2; exit 2; }
-  fi
+  [ -d "$DIR" ] || { echo "error: unknown feature '$FEATURE' ($DIR missing)" >&2; exit 2; }
   OUT="$DIR/$DATE-$SLUG.md"
 fi
 
@@ -174,7 +178,7 @@ TITLE="$TITLE" DATE="$DATE" FEATURE="$FEATURE" KIND="$KIND" awk '
   /^[[:space:]]*```/ { fence = !fence }
   !done_h && !fence && /^# / {
     done_h = 1
-    print (kind == "plan") ? "# " date " — " title : "# " title
+    print "# " title
     next
   }
   # YAML frontmatter — the keys docs/INDEX.md is built from.

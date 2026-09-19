@@ -1,12 +1,12 @@
 ---
 name: flow-implem
-description: Stage 3 of the flow workflow — executes a wave-structured implementation plan by dispatching every file-disjoint task in a wave to concurrent subagents, verifying at each wave barrier and committing one task per commit. Use when the plan declares Wave / Owns / Verify per task, typically docs/plans/*-plan.md from flow-plan-implem, and the user says "implement the plan", "build it", or "run these tasks in parallel". For a plain checklist plan without wave and ownership metadata, use superpowers-subagent-driven-development instead.
-version: 1.0.0
+description: Stage 3 of the flow workflow — executes a wave-structured implementation plan by dispatching every file-disjoint task in a wave to concurrent subagents, verifying at each wave barrier and committing one task per commit. Use when the plan declares Wave / Owns / Verify per task, typically tasks/*/plan.md from flow-plan-implem, and the user says "implement the plan", "build it", or "run these tasks in parallel". For a plain checklist plan without wave and ownership metadata, use superpowers-subagent-driven-development instead.
+version: 2.0.0
 ---
 
 # Flow / Implem: run every wave as wide as it will go
 
-**Input:** `docs/plans/<date>-<slug>-plan.md`.
+**Input:** `tasks/<date>-<slug>/plan.md`.
 **Output:** working code, one commit per task, plan checkboxes ticked.
 
 You are the **orchestrator**, not the implementer. Your job is to keep the
@@ -50,7 +50,7 @@ Then establish the ground rules for this repo:
   the `run` skill. Never silently downgrade a verify to "looks right".
 - **Ownership.** Validate the plan's `Owns` sets are disjoint per wave:
   ```sh
-  ~/.claude/skills/flow-plan-implem/scripts/check-plan.sh docs/plans/<file>.md
+  ~/.claude/skills/flow-plan-implem/scripts/check-plan.sh tasks/<date>-<slug>/plan.md
   ```
   If the script isn't installed, check the plan's file-ownership table by hand.
   Fix the plan before dispatching — catching it now costs a line edit, later it

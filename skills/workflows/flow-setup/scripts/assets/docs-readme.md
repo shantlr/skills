@@ -13,9 +13,14 @@ docs/
 ├── features/<f>/
 │   ├── README.md         what it is, how it works, + ## Key files
 │   ├── decisions/        why it is that way — YYYY-MM-DD-kebab-title.md
-│   └── bugs/             what broke and why — YYYY-MM-DD-kebab-title.md
-└── plans/              YYYY-MM-DD-kebab-title.md — written before the work
+    └── bugs/             what broke and why — YYYY-MM-DD-kebab-title.md
+
+../tasks/               units of work — see tasks/README.md
+└── YYYY-MM-DD-<slug>/  design.md · plan.md · review.md
 ```
+
+`docs/` is the system **as it is now**; `tasks/` is **how it got there**. Work
+in progress never lands in `docs/` — only what outlives the task does.
 
 Records live **under the feature**, not in a global pile, so that
 *"why does X behave like that?"* is answered in the first place anyone looks.
@@ -31,7 +36,7 @@ grows — they are **generated**, never hand-edited.
 | How does feature F work? | `features/F/README.md` |
 | Why is it built this way? | `INDEX.md` ▸ Decisions |
 | Has this broken before? | `INDEX.md` ▸ Bugs |
-| What is being built next? | `plans/` |
+| What is being built next? | `../tasks/` (and `INDEX.md` ▸ Tasks) |
 
 ## Writing path
 
@@ -40,7 +45,7 @@ grows — they are **generated**, never hand-edited.
 | what a feature is / how it works | `features/<f>/README.md` | always — one page per feature |
 | why we chose this over that | `features/<f>/decisions/` | a real alternative was rejected |
 | a post-mortem | `features/<f>/bugs/` | the bug was non-obvious, reached a user, or changed a rule |
-| the shape of upcoming work | `plans/` | before the work starts |
+| the shape of upcoming work | `../tasks/<date>-<slug>/design.md` | before the work starts |
 
 Not earned: typos, one-line nits, anything caught before merge, a decision that
 never had an alternative.
@@ -48,7 +53,6 @@ never had an alternative.
 ```sh
 ./docs/new-record.sh decision queue   "Partial dedupe index"
 ./docs/new-record.sh bug      queue   "Orphan reclaim skipped attempts"
-./docs/new-record.sh plan     -       "Extract the queue"
 ./docs/new-record.sh feature  billing "Billing"
 ./docs/build-index.sh                 # after any of the above
 ```

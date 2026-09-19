@@ -3,6 +3,12 @@
 All notable changes to the `flow-review` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [2.0.0] - 2026-09-19
+
+### Changed
+- Reads `tasks/<date>-<slug>/{design,plan}.md` and writes
+  `tasks/<date>-<slug>/review.md` instead of the flat `docs/plans/` files.
+
 ## [1.0.0] - 2026-09-13
 
 ### Added

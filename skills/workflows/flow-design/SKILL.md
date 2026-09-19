@@ -1,12 +1,13 @@
 ---
 name: flow-design
-description: Stage 1 of the flow workflow — scans the codebase for facts, grills the user until every branch of the idea is decided, compares approaches, and writes a full technical design (architecture, data model, interfaces, failures, tests) to docs/plans. You MUST use this before any creative work — new feature, new component, changed behavior. Use when the user says "brainstorm", "grill me", "let's think this through", "design this", "how should we build this", "architecture", or hands over a vague idea. The only stage of the flow that talks to the user.
-version: 1.0.0
+description: Stage 1 of the flow workflow — scans the codebase for facts, grills the user until every branch of the idea is decided, compares approaches, and writes a full technical design (architecture, data model, interfaces, failures, tests) to the task folder tasks/YYYY-MM-DD-<slug>/design.md. You MUST use this before any creative work — new feature, new component, changed behavior. Use when the user says "brainstorm", "grill me", "let's think this through", "design this", "how should we build this", "architecture", or hands over a vague idea. The only stage of the flow that talks to the user.
+version: 2.0.0
 ---
 
 # Flow / Design: grill until crystal clear, then specify it
 
-**Output:** `docs/plans/<YYYY-MM-DD>-<slug>-design.md`.
+**Output:** `tasks/<YYYY-MM-DD>-<slug>/design.md` (create the folder with
+`mkdir -p` if the orchestrator hasn't).
 **Not in scope:** task breakdown and ordering — that is `flow-plan-implem`.
 
 Questioning and designing are one activity, not two. Grilling surfaces
@@ -165,7 +166,7 @@ costs a design revision and a plan rewrite.
 
 ## Phase 4 — Write and commit
 
-Write `docs/plans/<YYYY-MM-DD>-<slug>-design.md`:
+Write `tasks/<YYYY-MM-DD>-<slug>/design.md`:
 
 ```markdown
 # <Title> — Design
@@ -199,7 +200,7 @@ The `## Decisions` table is the decisions log — every downstream stage checks
 itself against it, so record **rejected alternatives** too. Future readers need
 the why-not.
 
-Commit as `docs(plans): add <slug> design`, then hand off to `flow-plan-implem`.
+Commit as `docs(tasks): add <slug> design`, then hand off to `flow-plan-implem`.
 
 ## Rules
 

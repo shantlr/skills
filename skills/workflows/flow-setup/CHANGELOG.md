@@ -1,7 +1,55 @@
 # Changelog
 
-All notable changes to the `setup-docs` skill are documented here.
+All notable changes to the `flow-setup` skill (formerly `setup-docs`) are
+documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com), newest first.
+
+## [2.0.0] - 2026-09-19
+
+### Changed
+- **Renamed `setup-docs` → `flow-setup`, and moved into the `workflows` group**
+  alongside the `flow` stages it serves. Re-link it:
+  `rm ~/.claude/skills/setup-docs && ln -s "$PWD/skills/workflows/flow-setup" ~/.claude/skills/flow-setup`.
+  `scripts/setup-docs.sh` is now `scripts/setup-flow.sh`.
+- Triggers on "set up the flow" and "migrate my docs" as well as the previous
+  docs phrases. Still user-invoked only — more strictly than before, since it
+  now moves files.
+- `docs/` is now explicitly the system *as it is now* and `tasks/` is *how it
+  got there*, including the promotion path from a finished task into a feature
+  README and its decision records.
+
+### Added
+- **Scaffolds a `tasks/` folder** next to `docs/` for the one-folder-per-unit-of-work
+  layout `tasks/YYYY-MM-DD-<slug>/{design,plan,review}.md` — the structure the
+  `flow` skills read and write. It refuses to scaffold into an existing `tasks/`
+  that belongs to something else (a task runner, fixtures) and reports it
+  instead; `--no-tasks` skips the step entirely.
+- **Migration.** Before scaffolding, it surveys the project's actual structure,
+  classifies each existing doc by the question it answers, and proposes a
+  one-row-per-file table of moves for the user to confirm. Nothing moves
+  unconfirmed, nothing is overwritten, and anything it cannot classify is
+  reported as left alone rather than guessed at. Dates come from git history
+  (`--follow`, oldest commit), so migrating does not backdate the whole corpus
+  to the day it ran.
+- `INDEX.md` gained a **Tasks** section listing every task folder and which of
+  its artifacts exist, replacing the old Plans section.
+
+### Removed
+- **`docs/plans/` and the `plan` record kind.** `./docs/new-record.sh plan …`
+  now exits with an error and the plan template is gone — a plan is a statement
+  about the future, not documentation of the system, so it belongs with its
+  task. Existing `docs/plans/` files are left alone; the new migration step
+  offers to move them.
+
+### Fixed
+- `build-index.sh` no longer word-splits feature directory names containing
+  spaces, and percent-encodes task folder names so generated links resolve.
+- `build-index.sh` finds the project root by walking up for `.git`/`tasks`
+  instead of assuming it is the docs directory's parent. A nested
+  `--docs-dir sub/docs` previously reported "no tasks" and then failed
+  `--check` forever.
+- `new-record.sh` validates the record kind before the feature name, so a
+  retired kind reports itself instead of "needs a feature name".
 
 ## [1.0.0] - 2026-09-13
 

@@ -3,6 +3,11 @@
 All notable changes to the `flow-implem` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [2.0.0] - 2026-09-19
+
+### Changed
+- Reads `tasks/<date>-<slug>/plan.md` instead of `docs/plans/<date>-<slug>-plan.md`.
+
 ## [1.0.0] - 2026-09-13
 
 ### Added

@@ -66,4 +66,4 @@ record that established it.
 - **"Which file does X?"** → [FEATURE-MAP.md](./FEATURE-MAP.md)
 - **"Why is it like this?"** → [INDEX.md](./INDEX.md) ▸ Decisions
 - **"Has this broken before?"** → [INDEX.md](./INDEX.md) ▸ Bugs
-- **"What's being built?"** → `plans/`
+- **"What's being built / how did we get here?"** → `../tasks/`, or [INDEX.md](./INDEX.md) ▸ Tasks

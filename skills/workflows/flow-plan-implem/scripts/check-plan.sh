@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Validate a flow implementation plan before dispatching it.
 #
-#   check-plan.sh docs/plans/2026-09-13-add-oauth-plan.md
+#   check-plan.sh tasks/2026-09-13-add-oauth/plan.md
 #
 # Checks:
 #   - every task declares Wave, Owns and Verify

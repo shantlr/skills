@@ -1,25 +1,35 @@
 ---
 name: flow
-description: Runs the full feature workflow end to end — design (scan, grill, specify), then plan, implement and review — handing off markdown artifacts between stages. Use this when the user asks to "flow" something, says "run the flow", "full flow", "take this from idea to PR", "do the whole workflow", or describes a feature and wants it built properly rather than quick-and-dirty. Also use to resume a half-finished flow from its artifacts in docs/plans/.
-version: 1.0.0
+description: Runs the full feature workflow end to end — design (scan, grill, specify), then plan, implement, review and document — handing off markdown artifacts in a per-task folder under tasks/. Use this when the user asks to "flow" something, says "run the flow", "full flow", "take this from idea to PR", "do the whole workflow", or describes a feature and wants it built properly rather than quick-and-dirty. Also use to resume a half-finished flow from its artifacts in tasks/YYYY-MM-DD-<slug>/.
+version: 2.0.0
 ---
 
-# Flow: idea → design → plan → implement → review
+# Flow: idea → design → plan → implement → review → document
 
 ## Overview
 
-`flow` is an orchestrator. It does no work itself — it runs four stage skills in
+`flow` is an orchestrator. It does no work itself — it runs five stage skills in
 order and carries artifacts between them.
 
 ```
-   design    ──►   plan-implem   ──►   implem   ──►   review
+   design    ──►  plan-implem  ──►  implem   ──►  review   ──►   doc
      ⇄ user
-  scan, grill,     contracts +        waves of      verify, fix,
-  specify          waves of           parallel      report
-                   disjoint tasks     agents
-  ─────────────    ───────────────────────────────────────────
-  interactive      autonomous
+  scan, grill,    contracts +      waves of      verify,      promote to
+  specify         waves of         parallel      fix,         docs/
+                  disjoint tasks   agents        report
+  ─────────────   ─────────────────────────────────────────────────────
+  interactive     autonomous
+
+  tasks/<date>-<slug>/          ← working artifacts, live with the task
+    design.md  plan.md  review.md
+                    │
+                    └──► docs/  ← what survives the task (stage 5)
 ```
+
+**Two homes, on purpose.** `tasks/<date>-<slug>/` is the record of *this piece
+of work* — what was decided, what was built, what review found. `docs/` is the
+record of *the system as it is now*. Stage 5 is the bridge; without it the
+knowledge stays buried in a dated folder nobody re-reads.
 
 Stage 1 is the only one that talks to the user. Everything after it runs on the
 artifacts.
@@ -31,23 +41,39 @@ a missing credential. Then ask (batched, with a recommendation) and keep going.
 
 ## Instructions
 
-1. **Pick the slug.** Derive a kebab-case topic slug from the request
-   (`add-oauth-login`). Get today's date once: `date +%F`. All artifacts live at
-   `docs/plans/<YYYY-MM-DD>-<slug>-<stage>.md`.
+1. **Pick the task folder.** Derive a kebab-case topic slug from the request
+   (`add-oauth-login`). Get today's date once: `date +%F`. The task directory is
+   `tasks/<YYYY-MM-DD>-<slug>/`; every stage artifact is a fixed filename inside
+   it — `design.md`, `plan.md`, `review.md`. Create it with `mkdir -p` at the
+   start and pass the path to every stage.
 
-2. **Detect resume point.** `ls docs/plans/ | grep <slug>`. Start at the first
-   stage whose artifact is missing (or whose plan has unchecked tasks). Say in one
-   line where you are starting and why. Never redo a completed stage unless the
-   user asked.
+   ```
+   tasks/2026-09-19-add-oauth-login/
+     design.md    ← stage 1
+     plan.md      ← stage 2   (stage 3 ticks its checkboxes)
+     review.md    ← stage 4
+   ```
 
-3. **Run each stage by invoking its skill**, in order, passing the slug and date:
+   A stage may drop extra scratch files in the folder (`notes.md`, a scratch
+   diagram) — only the three above are contracts between stages.
+
+2. **Detect resume point.** `ls -d tasks/*-<slug>/ 2>/dev/null` — reuse the
+   existing folder if one is found, even under an older date; only mint a new
+   dated folder when there is none. Then `ls tasks/<date>-<slug>/` and start at
+   the first stage whose artifact is missing (or whose plan has unchecked tasks).
+   Say in one line where you are starting and why. Never redo a completed stage
+   unless the user asked.
+
+3. **Run each stage by invoking its skill**, in order, passing the task folder
+   path and the slug:
 
    | Stage | Skill | Skip when |
    | --- | --- | --- |
-   | 1 | `flow-design` | `…-design.md` exists |
-   | 2 | `flow-plan-implem` | `…-plan.md` exists |
+   | 1 | `flow-design` | `design.md` exists |
+   | 2 | `flow-plan-implem` | `plan.md` exists |
    | 3 | `flow-implem` | all plan tasks checked |
    | 4 | `flow-review` | never — always review |
+   | 5 | `flow-doc` | repo has no `docs/features/` tree |
 
 4. **Between stages, do a 3-line handoff.** State: artifact written, the single
    most important decision in it, and what the next stage will do with it. No
@@ -60,7 +86,8 @@ a missing credential. Then ask (batched, with a recommendation) and keep going.
 
 6. **Report at the end.** One summary containing:
    - ASCII diagram of what was built
-   - Table of artifacts written (path + one-line contents)
+   - Table of artifacts written — the task folder's files *and* the `docs/`
+     pages stage 5 created or updated (path + one-line contents)
    - Table of fixes from review: symptom → **root cause** → fix
    - Anything deliberately left out of scope
 
@@ -87,6 +114,11 @@ asking inline.
   something not in the previous artifact, that artifact was incomplete — go fix
   it there, not inline.
 - **Artifacts are committed.** Commit each artifact as it is written
-  (`docs(plans): add <slug> design`), so the flow is resumable from a clean tree.
+  (`docs(tasks): add <slug> design`), so the flow is resumable from a clean
+  tree. The `tasks/` tree is history — never gitignored, never deleted when the
+  work ships.
 - **Never skip review.**
+- **`tasks/` is the work, `docs/` is the system.** Stages 1–4 write their
+  artifacts only into the task folder (stage 3 also writes code, naturally).
+  Only stage 5 may write into `docs/`.
 - **Report root causes, not just fixes.**

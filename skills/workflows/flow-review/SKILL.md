@@ -1,14 +1,14 @@
 ---
 name: flow-review
-description: Stage 4 of the flow workflow — reviews the working diff against the flow design and plan artifacts in escalating multi-agent rounds, fixes what survives refutation, and reports each fix with its root cause. Use when docs/plans/*-design.md or *-plan.md exists for the current change, or right after flow-implem finishes, or when the user asks to double-check the work, sanity-check it, or says "did I miss anything" before opening a PR. For reviewing a diff with no flow artifacts behind it, use review-code instead.
-version: 1.0.0
+description: Stage 4 of the flow workflow — reviews the working diff against the flow design and plan artifacts in escalating multi-agent rounds, fixes what survives refutation, and reports each fix with its root cause. Use when tasks/<date>-<slug>/design.md or plan.md exists for the current change, or right after flow-implem finishes, or when the user asks to double-check the work, sanity-check it, or says "did I miss anything" before opening a PR. For reviewing a diff with no flow artifacts behind it, use review-code instead.
+version: 2.0.0
 ---
 
 # Flow / Review: three escalating rounds, then fix
 
 **Input:** the working diff (uncommitted + branch vs base) and, when present,
-`docs/plans/<date>-<slug>-{design,plan}.md`.
-**Output:** fixes applied, plus `docs/plans/<date>-<slug>-review.md`.
+`tasks/<date>-<slug>/{design,plan}.md`.
+**Output:** fixes applied, plus `tasks/<date>-<slug>/review.md`.
 
 Working around a rule below while telling yourself you are honoring its intent
 is still a violation.
@@ -129,7 +129,7 @@ Before writing the table, `git diff` and confirm **every row's change is
 actually present on disk**. A claimed fix that isn't in the working tree is this
 skill's worst possible failure.
 
-Write `docs/plans/<date>-<slug>-review.md` and post the same content:
+Write `tasks/<date>-<slug>/review.md` and post the same content:
 
 ```markdown
 # <Title> — Review

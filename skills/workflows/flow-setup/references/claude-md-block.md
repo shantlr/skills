@@ -26,13 +26,14 @@ is and how it fits together. From there:
 | Why is it built this way? | [docs/INDEX.md](./docs/INDEX.md) ▸ Decisions *(generated)* |
 | Has this broken before? | [docs/INDEX.md](./docs/INDEX.md) ▸ Bugs |
 | How does feature F work? | `docs/features/F/README.md` |
+| How did we build X / what was planned? | `tasks/YYYY-MM-DD-<slug>/` |
 
 | You are writing… | It goes in |
 | --- | --- |
 | what a feature is / how it works | `docs/features/<feature>/README.md` |
 | why we chose this over that | `docs/features/<feature>/decisions/YYYY-MM-DD-*.md` |
 | a post-mortem on a real bug | `docs/features/<feature>/bugs/YYYY-MM-DD-*.md` |
-| the shape of upcoming work | `docs/plans/YYYY-MM-DD-*.md` |
+| the shape of upcoming work | `tasks/YYYY-MM-DD-<slug>/design.md` |
 
 **Create records with `./docs/new-record.sh`** — it stamps the date, slugifies
 the title, seeds the frontmatter, prints the path, and never overwrites. Then
@@ -41,7 +42,6 @@ regenerate the index:
 ```sh
 ./docs/new-record.sh decision <feature> "Partial dedupe index"
 ./docs/new-record.sh bug      <feature> "Orphan reclaim skipped attempts"
-./docs/new-record.sh plan     -         "Extract the queue"
 ./docs/new-record.sh feature  <feature> "<Feature>"
 ./docs/build-index.sh                   # after any of the above
 ```

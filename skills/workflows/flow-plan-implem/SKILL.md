@@ -1,13 +1,13 @@
 ---
 name: flow-plan-implem
-description: Stage 2 of the flow workflow — converts a finished design document into a maximally parallel implementation plan: a contracts-first task, then waves of file-disjoint tasks that subagents can run concurrently, each with exact owned files, tests and a verify command. Use when a design artifact exists (docs/plans/*-design.md) and the user asks to plan the implementation, break it into tasks, or "parallelize this work". For a multi-step plan with no preceding design document, use superpowers-writing-plans instead.
-version: 1.0.0
+description: Stage 2 of the flow workflow — converts a finished design document into a maximally parallel implementation plan: a contracts-first task, then waves of file-disjoint tasks that subagents can run concurrently, each with exact owned files, tests and a verify command. Use when a design artifact exists (tasks/*/design.md) and the user asks to plan the implementation, break it into tasks, or "parallelize this work". For a multi-step plan with no preceding design document, use superpowers-writing-plans instead.
+version: 2.0.0
 ---
 
 # Flow / Plan-Implem: a wide, executable checklist
 
-**Input:** `docs/plans/<date>-<slug>-design.md`.
-**Output:** `docs/plans/<date>-<slug>-plan.md` — a checklist agents can execute
+**Input:** `tasks/<date>-<slug>/design.md`.
+**Output:** `tasks/<date>-<slug>/plan.md` — a checklist agents can execute
 **in parallel** without re-reading the design.
 
 Plan for width. A plan is good when many tasks can run at once; a chain of ten
@@ -132,7 +132,7 @@ files, a build, a smoke command) — never a vague one.
 Check `Owns` disjointness mechanically rather than by eye:
 
 ```sh
-~/.claude/skills/flow-plan-implem/scripts/check-plan.sh docs/plans/<date>-<slug>-plan.md
+~/.claude/skills/flow-plan-implem/scripts/check-plan.sh tasks/<date>-<slug>/plan.md
 ```
 
 It reports any file owned by two tasks in the same wave, any task missing
@@ -142,7 +142,7 @@ It reports any file owned by two tasks in the same wave, any task missing
 A plan that fails the check will collide at runtime, and two agents will lose
 their work to each other.
 
-Commit as `docs(plans): add <slug> implementation plan`, then hand off to
+Commit as `docs(tasks): add <slug> implementation plan`, then hand off to
 `flow-implem`.
 
 ## Revision mode

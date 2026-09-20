@@ -1,13 +1,19 @@
 ---
 name: flow-implem
-description: Stage 3 of the flow workflow — executes a wave-structured implementation plan by dispatching every file-disjoint task in a wave to concurrent subagents, verifying at each wave barrier and committing one task per commit. Use when the plan declares Wave / Owns / Verify per task, typically tasks/*/plan.md from flow-plan-implem, and the user says "implement the plan", "build it", or "run these tasks in parallel". For a plain checklist plan without wave and ownership metadata, use superpowers-subagent-driven-development instead.
-version: 2.1.0
+description: Stage 3 of the flow workflow — executes a wave-structured implementation plan by dispatching every file-disjoint task in a wave to concurrent subagents and verifying at each wave barrier (committing only if the user asked for commits). Use when the plan declares Wave / Owns / Verify per task, typically tasks/*/plan.md from flow-plan-implem, and the user says "implement the plan", "build it", or "run these tasks in parallel". For a plain checklist plan without wave and ownership metadata, use superpowers-subagent-driven-development instead.
+version: 3.0.0
 ---
 
 # Flow / Implem: run every wave as wide as it will go
 
 **Input:** `tasks/<date>-<slug>/plan.md`.
-**Output:** working code, one commit per task, plan checkboxes ticked.
+**Output:** working code in the working tree, plan checkboxes ticked.
+
+**Commits are opt-in.** Default: **no commits** — leave everything staged
+nowhere and uncommitted, and let the user commit. Only if the user explicitly
+asked the flow to commit ("commit as you go", "one commit per task") do you run
+the commit steps below; they are marked *(commit mode only)*. Say once, in
+preflight, which mode you are in.
 
 You are the **orchestrator**, not the implementer. Your job is to keep the
 maximum number of agents busy without ever letting two of them write the same
@@ -18,7 +24,7 @@ file — and to own all git operations yourself.
                        ├─ agent T2 ─┤  concurrent, disjoint Owns
                        └─ agent T3 ─┘
                               │
-              commit each passing task ─► tick checkboxes
+     verify each task, tick checkboxes (commit only if asked)
                               │
               wave barrier: full typecheck + suite ─► WAVE n+1
 ```
@@ -38,13 +44,17 @@ spend the session debugging someone else's breakage.
 
 Then establish the ground rules for this repo:
 
-- **Branch.** Confirm you are on a feature branch, not the default branch.
-  Create one if not. Not a git repo at all? Say so, skip every commit step,
-  and warn that failure recovery will be manual.
-- **Clean tree.** `git status --short` must be clean, or you must know exactly
-  why it isn't. Uncommitted files from a crashed mid-wave run will otherwise get
-  swept into the wrong task's commit. Either commit them as a recovery commit
-  or stash them before dispatching.
+- **Commit mode.** Did the user ask for commits? Default is **no**. Announce
+  the answer in one line. In no-commit mode you still use git to *read* state
+  (`git status`, `git diff`) — you just never write history.
+- **Branch.** *(commit mode only)* Confirm you are on a feature branch, not the
+  default branch. Create one if not. Not a git repo at all? Say so, skip every
+  commit step, and warn that failure recovery will be manual.
+- **Tree state.** `git status --short` — record what is already dirty *before*
+  you start, so you can tell your changes from pre-existing ones at the barrier.
+  In commit mode the tree must be clean, or you must know exactly why it isn't:
+  uncommitted files from a crashed mid-wave run will get swept into the wrong
+  task's commit, so commit them as a recovery commit or stash them first.
 - **No test suite?** Say so once, then substitute the strongest available check
   for every `Verify` — typecheck, lint, a build, or a runtime smoke command from
   the `run` skill. Never silently downgrade a verify to "looks right".
@@ -79,7 +89,7 @@ Give each agent, and nothing more:
 > - If you need to change a file you don't own, **stop and report it** — do not
 >   edit it, do not work around it.
 > - Do not run `git add`, `git commit`, `git stash`, or any branch operation.
->   The orchestrator commits.
+>   Only the orchestrator touches git — and only if the user asked for commits.
 > - Run only your scoped `Verify` command, not the full test suite.
 > - Your siblings are editing their own files in this same working tree right
 >   now. A whole-program typecheck will therefore show errors in files outside
@@ -133,14 +143,15 @@ When every agent in the wave has returned:
 
 1. `git status --short` — flag any file written by an agent that didn't own it.
    That is a contract violation; review that file closely before keeping it.
-2. **Re-run each task's `Verify` yourself.** Do not commit off a subagent's
+2. **Re-run each task's `Verify` yourself.** Do not tick a box off a subagent's
    reported output — an agent that finished suspiciously fast, summarized its
    test run instead of quoting it, or claims green on a file it barely touched
    gets independently checked. Read its diff too, not just its summary.
-3. **Commit the tasks whose verify you just watched pass**, one commit each,
-   staging only that task's `Owns` files: `feat(<scope>): <task title>`,
-   Conventional Commits. Tick their checkboxes. Do this **before** the full
-   suite — a failed sibling must not hold hostage work that is already correct.
+3. **Tick the checkboxes of the tasks whose verify you just watched pass.** Do
+   this **before** the full suite — a failed sibling must not hold hostage work
+   that is already correct.
+   *(commit mode only)* Also commit them, one commit each, staging only that
+   task's `Owns` files: `feat(<scope>): <task title>`, Conventional Commits.
 4. Run the **full** typecheck + test suite. This is where wave-level integration
    breakage shows up — two individually-correct tasks that disagree at their seam.
 5. Triage the result, because red here has two very different causes:
@@ -160,7 +171,7 @@ failed task freeze the rest of the plan either.
 
 | Situation | Action |
 | --- | --- |
-| One task fails, siblings fine | Let the wave finish. Fix the failed task yourself, or redispatch it with the failure output. Its siblings still commit. |
+| One task fails, siblings fine | Let the wave finish. Fix the failed task yourself, or redispatch it with the failure output. Its siblings still land. |
 | Verify fails | State one hypothesis, then fix. Still failing after **2 attempts** → stop guessing, add logging/instrumentation and find the real cause before editing again. |
 | Third consecutive failure on one task | Stop touching the code. The contract or the design is wrong, not your implementation — escalate to the two rows below. |
 | Barrier fails at a seam between two tasks | The contract (T0) was ambiguous. Fix the contract, then the two tasks — not one side of the seam. |
@@ -177,7 +188,7 @@ to get green.
 
 When all tasks are checked, post:
 
-- Wave-by-wave table: tasks per wave, what ran concurrently, commit shas
+- Wave-by-wave table: tasks per wave, what ran concurrently (commit shas, in commit mode)
 - Anything added to `## Discovered`
 - Any design revisions made and why
 - Ownership violations caught at a barrier
@@ -191,9 +202,12 @@ Then hand off to `flow-review`.
   launches waste the parallelism the plan paid for.
 - **`Owns` is law.** An agent writing outside it is a bug to investigate, not a
   convenience to accept.
+- **No commits unless the user asked.** Default is a dirty working tree handed
+  back to the user. Never commit, push, or open a PR on your own initiative.
 - **Only the orchestrator touches git.** Concurrent agents committing corrupt
   the index and produce unreviewable interleaved commits.
-- **One task, one commit, always green.**
+- **One task, one commit, always green** — in commit mode. Otherwise: one task,
+  one verified green checkbox.
 - **Full suite at wave barriers only** — scoped verifies inside tasks.
 - **The plan is the contract.** Out-of-scope work goes in `## Discovered`.
 - **Two failed fixes = add logs.** Blind third attempts are forbidden.
@@ -208,9 +222,10 @@ Then hand off to `flow-review`.
 | Thought | Reality |
 | --- | --- |
 | "The sibling's typecheck errors are trivial, I'll just fix them too." | You are about to write outside `Owns` and collide with a running agent. Report it instead. |
-| "The agent said tests pass, that's good enough to commit." | Re-run the verify yourself. Trusting the report is how a broken commit lands. |
+| "The agent said tests pass, that's good enough." | Re-run the verify yourself. Trusting the report is how broken code lands. |
+| "I'll commit as I go, it's tidier / safer." | Not unless the user asked. Default is no commits at all — hand back a working tree. |
 | "It's basically passing — one unrelated test is red." | Then you don't know it's unrelated. Triage it against the known-red list first. |
 | "This is the third fix attempt but I'm sure this one's right." | Three strikes means the contract is wrong, not your code. Stop and escalate. |
-| "I'll just commit everything at once, it's cleaner." | One task per commit is what makes a bad task revertible. |
+| "I'll just commit everything at once, it's cleaner." | In commit mode, one task per commit is what makes a bad task revertible. Outside it, don't commit at all. |
 | "The plan says T4 owns this file, but it's faster if I do it here." | The plan is the contract. Change the plan, not the ownership. |
 | "I'll write the test after the implementation, same thing." | A test you never watched fail proves nothing about your code. |

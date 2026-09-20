@@ -3,6 +3,13 @@
 All notable changes to the `flow-review` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [4.0.0] - 2026-09-20
+
+### Changed
+- No longer commits its fixes. Fixes are applied in the working tree and
+  reported in the conversation; they are committed only if you asked the flow
+  to commit.
+
 ## [3.0.0] - 2026-09-20
 
 ### Removed

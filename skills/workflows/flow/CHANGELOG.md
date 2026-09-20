@@ -3,6 +3,15 @@
 All notable changes to the `flow` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [3.0.0] - 2026-09-20
+
+### Changed
+- **The flow no longer commits anything by default.** Design, plan, code and
+  review fixes are all left in the working tree for you to commit. Ask for
+  commits explicitly ("commit as you go", "one commit per task") to get the
+  previous per-stage Conventional Commits behaviour. Artifacts are still
+  written to `tasks/<date>-<slug>/`, and resuming reads the files, not git.
+
 ## [2.2.0] - 2026-09-20
 
 ### Changed

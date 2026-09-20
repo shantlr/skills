@@ -3,6 +3,11 @@
 All notable changes to the `flow-doc` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [3.0.0] - 2026-09-20
+
+### Changed
+- No longer commits the docs it writes, unless you asked the flow to commit.
+
 ## [2.0.0] - 2026-09-20
 
 ### Changed

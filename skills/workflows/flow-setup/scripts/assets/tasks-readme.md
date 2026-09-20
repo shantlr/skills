@@ -24,7 +24,7 @@ now**. Both are committed; neither replaces the other.
 | --- | --- |
 | starting a piece of work | `tasks/<today>-<slug>/design.md` |
 | breaking it into tasks | `…/plan.md` |
-| reviewing what landed | nothing — review posts its report and commits fixes |
+| reviewing what landed | nothing — review posts its report and applies fixes in the working tree |
 | finished, and it changed the system | `docs/features/<f>/README.md` + a decision record |
 
 The `flow` skills write these for you: `flow-design` → `flow-plan-implem` →

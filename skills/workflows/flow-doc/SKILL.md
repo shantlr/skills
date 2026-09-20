@@ -1,7 +1,7 @@
 ---
 name: flow-doc
 description: Stage 5 of the flow workflow — promotes a finished task's artifacts into the project's durable docs/ tree, updating the feature one-pager and writing a decision record for each real alternative that was rejected. Use right after flow-review finishes, or when the user says "document this", "write it up in docs", "update the docs for this change", or asks what a shipped change should leave behind. Only updates an existing docs/ tree; it never scaffolds one.
-version: 2.0.0
+version: 3.0.0
 ---
 
 # Flow / Doc: promote the task into the docs
@@ -22,7 +22,7 @@ second kind of knowledge across — everything else stays in `tasks/`.
    design.md   ── Decisions table ──────► docs/features/<f>/decisions/<date>-<slug>.md
    design.md   ── Architecture, flow ──┐
    plan.md     ── owned files ─────────┼─► docs/features/<f>/README.md  (+ ## Key files)
-   fix commits ── root causes ─────────┘        └─ a shipped bug worth remembering
+   review fixes ─ root causes ─────────┘        └─ a shipped bug worth remembering
                                                    ──► docs/features/<f>/bugs/<date>-<slug>.md
    design.md   ─┐
    stage-4 report (in conversation)
@@ -102,11 +102,11 @@ If a new record overturns an existing one, set `status: superseded` and
 ### 5. Bug records — only when one was shipped and is instructive
 
 From stage 4's review report (posted in the conversation; if it is not in
-context, read the `fix(...)` commits on this branch), promote a fix with
+context, read the review report or the `fix(...)` commits on this branch), promote a fix with
 `./docs/new-record.sh bug <feature> "<what broke>"` — same helper as step 4, so
 the date, frontmatter and collision check come for free — only when it was a
 **pre-existing** bug in shipped code with a non-obvious root cause. Bugs introduced and fixed inside this task never happened as far as the
-system is concerned — they stay in the review report and the commit history.
+system is concerned — they stay in the review report and the diff.
 
 ### 6. Guidelines — only for rules the task actually earned
 
@@ -185,9 +185,10 @@ reports; never hand-edit a generated file.
 heading, wrong prefix, duplicate number, duplicate topic slug across areas.
 Run it after touching guidelines.
 
-### 8. Commit and report
+### 8. Report
 
-Commit as `docs(<feature>): document <slug>`. Then report:
+Leave the docs changes **uncommitted** unless the user asked the flow to commit
+(then: `docs(<feature>): document <slug>`). Then report:
 
 - Table: file → created/updated → one line of what it now says
 - Every guideline rule written or amended, **by ID** (`FORMS-7 — new`,

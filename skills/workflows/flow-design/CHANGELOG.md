@@ -3,6 +3,12 @@
 All notable changes to the `flow-design` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [3.0.0] - 2026-09-20
+
+### Changed
+- No longer commits `design.md`. The file is written and handed off
+  uncommitted unless you asked the flow to commit as it goes.
+
 ## [2.1.0] - 2026-09-19
 
 ### Added

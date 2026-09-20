@@ -1,7 +1,7 @@
 ---
 name: flow
 description: Runs the full feature workflow end to end — design (scan, grill, specify), then plan, implement, review and document — handing off markdown artifacts in a per-task folder under tasks/. Use this when the user asks to "flow" something, says "run the flow", "full flow", "take this from idea to PR", "do the whole workflow", or describes a feature and wants it built properly rather than quick-and-dirty. Also use to resume a half-finished flow from its artifacts in tasks/YYYY-MM-DD-<slug>/.
-version: 2.2.0
+version: 3.0.0
 ---
 
 # Flow: idea → design → plan → implement → review → document
@@ -58,7 +58,7 @@ a missing credential. Then ask (batched, with a recommendation) and keep going.
    ```
 
    Stage 4 writes no artifact — it posts its review report in the conversation
-   and commits its fixes. A stage may drop extra scratch files in the folder
+   and applies its fixes in the working tree. A stage may drop extra scratch files in the folder
    (`notes.md`, a scratch diagram) — only the two above are contracts between
    stages.
 
@@ -118,10 +118,15 @@ asking inline.
 - **One stage's output is the next stage's only input.** If a stage needs
   something not in the previous artifact, that artifact was incomplete — go fix
   it there, not inline.
-- **Artifacts are committed.** Commit each artifact as it is written
-  (`docs(tasks): add <slug> design`), so the flow is resumable from a clean
-  tree. The `tasks/` tree is history — never gitignored, never deleted when the
-  work ships.
+- **Commits are opt-in.** By default the flow makes **no commits at all** —
+  not for artifacts, not for tasks, not for fixes. Leave everything in the
+  working tree and let the user commit. Commit only if the user asked for it
+  ("commit as you go", "one commit per task", "commit the artifacts"). State
+  once, at the start, which mode you are in. Never push or open a PR unless
+  asked.
+- **Artifacts still live on disk.** Write each artifact as it is produced; the
+  `tasks/` tree is history — never gitignored, never deleted when the work
+  ships. Resume reads the files, not the git log.
 - **Never skip review.**
 - **`tasks/` is the work, `docs/` is the system.** Stages 1–4 write their
   artifacts only into the task folder (stage 3 also writes code, naturally).

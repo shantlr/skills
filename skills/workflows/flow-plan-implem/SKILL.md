@@ -1,7 +1,7 @@
 ---
 name: flow-plan-implem
 description: Stage 2 of the flow workflow — converts a finished design document into a maximally parallel implementation plan: a contracts-first task, then waves of file-disjoint tasks that subagents can run concurrently, each with exact owned files, tests and a verify command. Use when a design artifact exists (tasks/*/design.md) and the user asks to plan the implementation, break it into tasks, or "parallelize this work". For a multi-step plan with no preceding design document, use superpowers-writing-plans instead.
-version: 2.0.0
+version: 3.0.0
 ---
 
 # Flow / Plan-Implem: a wide, executable checklist
@@ -127,7 +127,7 @@ files, a build, a smoke command) — never a vague one.
 - **Discovered** — an empty `## Discovered` heading. `flow-implem` appends
   pre-existing bugs and out-of-scope findings here instead of fixing them.
 
-### 7. Validate, write, commit
+### 7. Validate and write
 
 Check `Owns` disjointness mechanically rather than by eye:
 
@@ -138,21 +138,22 @@ Check `Owns` disjointness mechanically rather than by eye:
 It reports any file owned by two tasks in the same wave, any task missing
 `Owns`/`Wave`/`Verify`, and the width of each wave.
 
-**STOP. Do not commit the plan or hand off until this reports zero errors.**
+**STOP. Do not hand off until this reports zero errors.**
 A plan that fails the check will collide at runtime, and two agents will lose
 their work to each other.
 
-Commit as `docs(tasks): add <slug> implementation plan`, then hand off to
-`flow-implem`.
+Leave the plan **uncommitted** and hand off to `flow-implem`. Commit it
+(`docs(tasks): add <slug> implementation plan`) only if the user explicitly
+asked the flow to commit as it goes.
 
 ## Revision mode
 
 `flow-implem` re-enters this skill when the design changed mid-implementation.
-Some tasks are already checked and **committed**, so the plan is append-only
+Some tasks are already checked and built, so the plan is append-only
 from here:
 
-1. **Never renumber or delete an existing task.** Commit messages and checkboxes
-   already reference those numbers.
+1. **Never renumber or delete an existing task.** Checkboxes (and commit
+   messages, if commits were enabled) already reference those numbers.
 2. Tasks that are checked and still valid: leave untouched.
 3. Tasks that are checked but now **wrong**: leave them checked, and add a new
    task that supersedes them — `T9 — supersedes T4: …`, with a `Why` line

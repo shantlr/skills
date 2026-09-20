@@ -1,7 +1,7 @@
 ---
 name: flow-design
 description: Stage 1 of the flow workflow — scans the codebase for facts, grills the user until every branch of the idea is decided, compares approaches, and writes a full technical design (architecture, data model, interfaces, failures, tests) to the task folder tasks/YYYY-MM-DD-<slug>/design.md. You MUST use this before any creative work — new feature, new component, changed behavior. Use when the user says "brainstorm", "grill me", "let's think this through", "design this", "how should we build this", "architecture", or hands over a vague idea. The only stage of the flow that talks to the user.
-version: 2.1.0
+version: 3.0.0
 ---
 
 # Flow / Design: grill until crystal clear, then specify it
@@ -221,7 +221,7 @@ interfaces verbatim as stubs, and every parallel task is written against them.
 Catching a wrong one here costs one message; catching it during implementation
 costs a design revision and a plan rewrite.
 
-## Phase 4 — Write and commit
+## Phase 4 — Write the design
 
 Write `tasks/<YYYY-MM-DD>-<slug>/design.md`:
 
@@ -264,7 +264,9 @@ The `## Decisions` table is the decisions log — every downstream stage checks
 itself against it, so record **rejected alternatives** too. Future readers need
 the why-not.
 
-Commit as `docs(tasks): add <slug> design`, then hand off to `flow-plan-implem`.
+Leave the file **uncommitted** and hand off to `flow-plan-implem`. Commit it
+(`docs(tasks): add <slug> design`) only if the user explicitly asked the flow to
+commit as it goes.
 
 ## Rules
 

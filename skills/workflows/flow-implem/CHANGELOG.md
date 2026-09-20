@@ -3,6 +3,15 @@
 All notable changes to the `flow-implem` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [3.0.0] - 2026-09-20
+
+### Changed
+- **No commits by default.** Waves are still dispatched, verified and their
+  checkboxes ticked, but everything is left in the working tree for you to
+  commit. Ask for commits ("commit as you go", "one commit per task") to get
+  the previous one-commit-per-task behaviour; preflight now announces which
+  mode it is in, and the branch check applies only in commit mode.
+
 ## [2.1.0] - 2026-09-19
 
 ### Added

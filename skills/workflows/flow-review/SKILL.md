@@ -1,14 +1,15 @@
 ---
 name: flow-review
 description: Stage 4 of the flow workflow — reviews the working diff against the flow design and plan artifacts in escalating multi-agent rounds, fixes what survives refutation, and reports each fix with its root cause. Use when tasks/<date>-<slug>/design.md or plan.md exists for the current change, or right after flow-implem finishes, or when the user asks to double-check the work, sanity-check it, or says "did I miss anything" before opening a PR. For reviewing a diff with no flow artifacts behind it, use review-code instead.
-version: 2.2.0
+version: 3.0.0
 ---
 
 # Flow / Review: three escalating rounds, then fix
 
 **Input:** the working diff (uncommitted + branch vs base) and, when present,
 `tasks/<date>-<slug>/{design,plan}.md`.
-**Output:** fixes applied, plus `tasks/<date>-<slug>/review.md`.
+**Output:** fixes applied, plus a review report posted in the conversation. Do
+not write a review file — nothing is persisted to `tasks/`.
 
 Working around a rule below while telling yourself you are honoring its intent
 is still a violation.
@@ -213,11 +214,12 @@ Before writing the table, `git diff` and confirm **every row's change is
 actually present on disk**. A claimed fix that isn't in the working tree is this
 skill's worst possible failure.
 
-Write `tasks/<date>-<slug>/review.md` and post the same content:
+Post the report **in the conversation**. Do not write it to a file — no
+`review.md`, no other artifact. The user reads it here; `flow-doc` (stage 5)
+gets what it needs from the diff and the commits.
 
 ```markdown
 # <Title> — Review
-Date: YYYY-MM-DD
 
 ## Fixes
 | # | Severity | Symptom | Root cause | Fix | File |
@@ -282,6 +284,7 @@ Three rounds multiply noise threefold unless you hold the line. Do not report:
 - **Every guideline finding names a rule ID.** No ID, not a guideline finding.
 - **Nominate a guideline only on a repeat.** One occurrence is a decision record.
 - **Root cause in every report row.**
+- **Never write a review file.** The report is posted in the conversation only.
 - **Two failed fix attempts → instrument, don't guess.**
 - **Don't widen scope** — note pre-existing issues, fix the diff.
 - **Tests must pass before you claim done.** Never state a result you have not
@@ -301,6 +304,7 @@ Three rounds multiply noise threefold unless you hold the line. Do not report:
 | "Only a couple of ui-ux topics look relevant, I'll check those." | A UI change is checked against the whole area. The skipped topic is the violated one. |
 | "The design argued against this rule, so the design is wrong." | Already decided in stage 1. Not your call in stage 4. |
 | "Good rule — I'll nominate it from this one instance." | One instance is a decision record. Unearned rules kill the rulebook. |
+| "I'll also drop this report in `tasks/.../review.md` so it's saved." | No. The report lives in the conversation; the fixes live in commits. No review file. |
 | "There's no docs/guidelines/, I'll create one." | Skip the pass. `flow-setup` is user-invoked only. |
 | "There are 8 findings — I'll fire all 8 verifiers at once, it's faster." | Cap is 3 per batch. Batch them; don't verify fewer. |
 | "To respect the cap I'll merge two lenses into one agent." | That's dropping coverage, not batching. Run both, in different batches. |

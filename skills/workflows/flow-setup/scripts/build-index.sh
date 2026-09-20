@@ -308,8 +308,8 @@ EOF
   fi
   local tasks; tasks="$(find "$ROOT/tasks" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort || true)"
   printf '## Tasks\n\n'
-  printf 'Units of work, newest last. Each folder holds `design.md`, `plan.md`\n'
-  printf 'and `review.md` — the *how we got here*, kept out of `%s/` on purpose.\n\n' "$DOCS_DIR"
+  printf 'Units of work, newest last. Each folder holds `design.md` and `plan.md`\n'
+  printf '— the *how we got here*, kept out of `%s/` on purpose.\n\n' "$DOCS_DIR"
   if [ -n "$tasks" ]; then
     printf '| Task | Artifacts |\n| --- | --- |\n'
     while IFS= read -r t; do

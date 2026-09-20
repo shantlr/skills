@@ -3,6 +3,13 @@
 All notable changes to the `flow-review` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [3.0.0] - 2026-09-20
+
+### Removed
+- **No more `review.md`.** The review report is now posted in the conversation
+  only; nothing is written to the task folder. Fixes still land as their own
+  `fix(...)` commits, so the durable record is the diff and the history.
+
 ## [2.2.0] - 2026-09-20
 
 ### Changed

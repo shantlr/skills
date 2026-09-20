@@ -18,7 +18,7 @@ docs/
     └── bugs/             what broke and why — YYYY-MM-DD-kebab-title.md
 
 ../tasks/               units of work — see tasks/README.md
-└── YYYY-MM-DD-<slug>/  design.md · plan.md · review.md
+└── YYYY-MM-DD-<slug>/  design.md · plan.md
 ```
 
 `docs/` is the system **as it is now**; `tasks/` is **how it got there**. Work

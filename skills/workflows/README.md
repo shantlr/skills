@@ -14,7 +14,7 @@ skill; **`flow`** is the orchestrator that runs them in order.
    ⇄ user
    │            │           │           │            │
    ▼            ▼           ▼           ▼            ▼
-design.md    plan.md   code+commits  review.md    docs/…
+design.md    plan.md   code+commits  fixes+report  docs/…
    │                                      │            │
    └──── tasks/YYYY-MM-DD-<slug>/ ────────┘            │
          every stage reads the previous artifact       │
@@ -29,7 +29,7 @@ design constraints, stage 3 pastes them into subagent prompts, stage 4 reports
 violations by ID, and stage 5 is the only stage that writes a new one.
 
 **Two homes.** `tasks/<date>-<slug>/` holds the record of *this piece of work*
-(design, plan, review) and is committed as history. `docs/` holds the record of
+(design, plan) and is committed as history. `docs/` holds the record of
 *the system as it is now*. Stage 5 is the only bridge between them: no stage
 before it writes anything under `docs/` (stage 3 writes code, of course — the
 rule is about which *documentation* tree a stage may touch).
@@ -42,8 +42,8 @@ activity, so they live in one skill. Stages 2–5 run on the artifacts.
 | 1 | [`flow-design`](./flow-design) | codebase + user | `tasks/<date>-<slug>/design.md` |
 | 2 | [`flow-plan-implem`](./flow-plan-implem) | design | `…/plan.md` |
 | 3 | [`flow-implem`](./flow-implem) | plan | code, commits, plan checkboxes |
-| 4 | [`flow-review`](./flow-review) | design + plan + diff | `…/review.md`, fixes |
-| 5 | [`flow-doc`](./flow-doc) | all three + diff | `docs/features/<f>/…`, `docs/guidelines/…` |
+| 4 | [`flow-review`](./flow-review) | design + plan + diff | fixes + commits, report in chat |
+| 5 | [`flow-doc`](./flow-doc) | design + plan + diff | `docs/features/<f>/…`, `docs/guidelines/…` |
 
 Each stage can be invoked on its own (`/flow-plan-implem`) to redo or resume one
 step.

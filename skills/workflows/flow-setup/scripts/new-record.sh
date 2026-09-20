@@ -17,7 +17,7 @@
 # feature — a rule that belongs to one feature is not a guideline.
 #
 # Plans are NOT docs records — a unit of work lives in tasks/<date>-<slug>/
-# (design.md, plan.md, review.md), written by the `flow` skills.
+# (design.md, plan.md), written by the `flow` skills.
 #
 # Prints the created path on stdout and nothing else, so it can be captured:
 #   f=$(new-record.sh decision queue "…")

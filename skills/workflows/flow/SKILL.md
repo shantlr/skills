@@ -1,7 +1,7 @@
 ---
 name: flow
 description: Runs the full feature workflow end to end — design (scan, grill, specify), then plan, implement, review and document — handing off markdown artifacts in a per-task folder under tasks/. Use this when the user asks to "flow" something, says "run the flow", "full flow", "take this from idea to PR", "do the whole workflow", or describes a feature and wants it built properly rather than quick-and-dirty. Also use to resume a half-finished flow from its artifacts in tasks/YYYY-MM-DD-<slug>/.
-version: 2.1.0
+version: 2.2.0
 ---
 
 # Flow: idea → design → plan → implement → review → document
@@ -21,7 +21,7 @@ order and carries artifacts between them.
   interactive     autonomous
 
   tasks/<date>-<slug>/          ← working artifacts, live with the task
-    design.md  plan.md  review.md
+    design.md  plan.md
                     │
                     └──► docs/  ← what survives the task (stage 5)
                            features/  decisions/
@@ -48,18 +48,19 @@ a missing credential. Then ask (batched, with a recommendation) and keep going.
 1. **Pick the task folder.** Derive a kebab-case topic slug from the request
    (`add-oauth-login`). Get today's date once: `date +%F`. The task directory is
    `tasks/<YYYY-MM-DD>-<slug>/`; every stage artifact is a fixed filename inside
-   it — `design.md`, `plan.md`, `review.md`. Create it with `mkdir -p` at the
+   it — `design.md`, `plan.md`. Create it with `mkdir -p` at the
    start and pass the path to every stage.
 
    ```
    tasks/2026-09-19-add-oauth-login/
      design.md    ← stage 1
      plan.md      ← stage 2   (stage 3 ticks its checkboxes)
-     review.md    ← stage 4
    ```
 
-   A stage may drop extra scratch files in the folder (`notes.md`, a scratch
-   diagram) — only the three above are contracts between stages.
+   Stage 4 writes no artifact — it posts its review report in the conversation
+   and commits its fixes. A stage may drop extra scratch files in the folder
+   (`notes.md`, a scratch diagram) — only the two above are contracts between
+   stages.
 
 2. **Detect resume point.** `ls -d tasks/*-<slug>/ 2>/dev/null` — reuse the
    existing folder if one is found, even under an older date; only mint a new

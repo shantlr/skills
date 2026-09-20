@@ -4,6 +4,13 @@ All notable changes to the `flow-setup` skill (formerly `setup-docs`) are
 documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com), newest first.
 
+## [2.4.0] - 2026-09-20
+
+### Changed
+- Scaffolded `tasks/` and `docs/` READMEs, the migration map and the generated
+  INDEX no longer mention `review.md`; a task folder holds `design.md` and
+  `plan.md`.
+
 ## [2.3.0] - 2026-09-20
 
 ### Added

@@ -1,12 +1,13 @@
 ---
 name: flow-doc
 description: Stage 5 of the flow workflow — promotes a finished task's artifacts into the project's durable docs/ tree, updating the feature one-pager and writing a decision record for each real alternative that was rejected. Use right after flow-review finishes, or when the user says "document this", "write it up in docs", "update the docs for this change", or asks what a shipped change should leave behind. Only updates an existing docs/ tree; it never scaffolds one.
-version: 1.1.0
+version: 2.0.0
 ---
 
 # Flow / Doc: promote the task into the docs
 
-**Input:** `tasks/<date>-<slug>/{design,plan,review}.md` and the shipped diff.
+**Input:** `tasks/<date>-<slug>/{design,plan}.md`, stage 4's review report, and
+the shipped diff.
 **Output:** updated `docs/features/<feature>/README.md`, one decision record per
 rejected alternative, and — only when the task earned one — a new or amended
 rule under `docs/guidelines/<area>/<topic>.md`. Nothing is written outside
@@ -21,10 +22,11 @@ second kind of knowledge across — everything else stays in `tasks/`.
    design.md   ── Decisions table ──────► docs/features/<f>/decisions/<date>-<slug>.md
    design.md   ── Architecture, flow ──┐
    plan.md     ── owned files ─────────┼─► docs/features/<f>/README.md  (+ ## Key files)
-   review.md   ── root causes ─────────┘        └─ a shipped bug worth remembering
+   fix commits ── root causes ─────────┘        └─ a shipped bug worth remembering
                                                    ──► docs/features/<f>/bugs/<date>-<slug>.md
    design.md   ─┐
-   review.md   ─┴ ## Guideline candidates ──► docs/guidelines/<area>/<topic>.md
+   stage-4 report (in conversation)
+               ─┴ ## Guideline candidates ──► docs/guidelines/<area>/<topic>.md
                                               (append the next <TOPIC-ID>-<n>)
    (dates, task breakdown, wave structure, refuted findings)  ──► stays put ✗
 ```
@@ -99,11 +101,12 @@ If a new record overturns an existing one, set `status: superseded` and
 
 ### 5. Bug records — only when one was shipped and is instructive
 
-From `review.md`, promote a fix with
+From stage 4's review report (posted in the conversation; if it is not in
+context, read the `fix(...)` commits on this branch), promote a fix with
 `./docs/new-record.sh bug <feature> "<what broke>"` — same helper as step 4, so
 the date, frontmatter and collision check come for free — only when it was a
 **pre-existing** bug in shipped code with a non-obvious root cause. Bugs introduced and fixed inside this task never happened as far as the
-system is concerned — leave them in `review.md`.
+system is concerned — they stay in the review report and the commit history.
 
 ### 6. Guidelines — only for rules the task actually earned
 
@@ -115,8 +118,8 @@ product-wide. Only the third kind goes here.
 docs tree: do not create the folder, do not create an area, say nothing beyond
 a line in the report. This is the step most tempted to scaffold — don't.
 
-Read `## Guideline candidates` in `design.md` (stage 1) and `review.md`
-(stage 4), then add anything the task plainly established as a reusable rule
+Read `## Guideline candidates` in `design.md` (stage 1) and in stage 4's review
+report in the conversation, then add anything the task plainly established as a reusable rule
 even though nobody nominated it.
 
 **Apply the bar before writing a word.** A guideline is earned when:

@@ -3,6 +3,13 @@
 All notable changes to the `flow-doc` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [2.0.0] - 2026-09-20
+
+### Changed
+- Reads stage 4's review report from the conversation (falling back to the
+  branch's `fix(...)` commits) instead of `tasks/<date>-<slug>/review.md`,
+  which `flow-review` no longer writes.
+
 ## [1.1.0] - 2026-09-19
 
 ### Added

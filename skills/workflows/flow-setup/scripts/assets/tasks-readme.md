@@ -6,8 +6,7 @@ One directory per unit of work: `tasks/YYYY-MM-DD-<kebab-slug>/`.
 tasks/
 └── 2026-09-19-extract-the-queue/
     ├── design.md    what we decided to build, and why — written BEFORE the work
-    ├── plan.md      the executable task breakdown; checkboxes get ticked
-    └── review.md    what review found after the work landed, with root causes
+    └── plan.md      the executable task breakdown; checkboxes get ticked
 ```
 
 This folder is **how the system got here**. `docs/` is **what the system is
@@ -25,10 +24,10 @@ now**. Both are committed; neither replaces the other.
 | --- | --- |
 | starting a piece of work | `tasks/<today>-<slug>/design.md` |
 | breaking it into tasks | `…/plan.md` |
-| reviewing what landed | `…/review.md` |
+| reviewing what landed | nothing — review posts its report and commits fixes |
 | finished, and it changed the system | `docs/features/<f>/README.md` + a decision record |
 
-The `flow` skills write all four for you: `flow-design` → `flow-plan-implem` →
+The `flow` skills write these for you: `flow-design` → `flow-plan-implem` →
 `flow-implem` → `flow-review` → `flow-doc`.
 
 ## Rules

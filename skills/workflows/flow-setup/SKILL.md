@@ -1,7 +1,7 @@
 ---
 name: flow-setup
 description: Sets up the two folders the flow workflow reads and writes — a `docs/` tree (ARCHITECTURE.md entry point, per-feature one-pagers, dated decision and bug records, a `guidelines/` rulebook of cross-cutting UI/UX and API conventions, generated FEATURE-MAP.md / INDEX.md) and a `tasks/` folder where each unit of work keeps its design, plan and review. Also migrates an existing project onto that layout, proposing a move for every file already serving the same purpose. Use when the user says "set up docs", "set up the flow", "create a docs folder", "add documentation structure", "scaffold docs", "document this project", "I want ADRs / decision records / bug records", "I want a place for our UI/UX guidelines or house conventions", "migrate my docs", or asks for an architecture overview or a map of which files implement what. Also updates a project whose scaffold has fallen behind this skill — "update my docs setup", "update the flow setup", "my docs scaffold is out of date", "pull in the new guidelines" — refreshing the scripts, templates and instruction-file sections without touching anything written from the codebase. User-invoked only — never trigger this skill on your own initiative while doing other work; it must be asked for explicitly.
-version: 2.3.0
+version: 2.4.0
 ---
 
 # Flow / Setup: the folders the flow lives in
@@ -54,8 +54,7 @@ tasks/                     ← SIBLING of docs/, not inside it
 ├── README.md              ← how a unit of work is recorded
 └── YYYY-MM-DD-<slug>/     ← one folder per unit of work
     ├── design.md            what we decided to build, and why
-    ├── plan.md              the task breakdown, checkboxes ticked as it runs
-    └── review.md            what review found, with root causes
+    └── plan.md              the task breakdown, checkboxes ticked as it runs
 ```
 
 **Two trees, one rule.** `docs/` is the system **as it is now** — present tense,
@@ -67,7 +66,7 @@ this automatically).
 
 ```
   tasks/<date>-<slug>/design.md ──┐
-  tasks/<date>-<slug>/review.md ──┴──►  docs/features/<f>/README.md
+  the review's fix commits      ──┴──►  docs/features/<f>/README.md
                                         docs/features/<f>/decisions/<date>-<slug>.md
 ```
 
@@ -156,7 +155,6 @@ because it is rebuilt from it.
      "what broke, and why?"           ──►  docs/features/<f>/bugs/
      "what are we about to build?"    ──►  tasks/<date>-<slug>/design.md
      "how is that work broken down?"  ──►  tasks/<date>-<slug>/plan.md
-     "what did review find?"          ──►  tasks/<date>-<slug>/review.md
      none of these                    ──►  leave it exactly where it is
    ```
 

@@ -3,6 +3,13 @@
 All notable changes to the `flow` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [2.2.0] - 2026-09-20
+
+### Changed
+- The task folder now holds two stage contracts, `design.md` and `plan.md`.
+  Stage 4 writes no artifact — it posts its review in the conversation and
+  commits its fixes.
+
 ## [2.1.0] - 2026-09-19
 
 ### Added

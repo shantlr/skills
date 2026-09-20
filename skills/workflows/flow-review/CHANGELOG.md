@@ -3,6 +3,15 @@
 All notable changes to the `flow-review` skill.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), newest first.
 
+## [2.2.0] - 2026-09-20
+
+### Changed
+- **At most 3 subagents are dispatched at a time.** Rounds with more work than
+  that now run in sequential batches of 3, ordered by risk, instead of one big
+  fan-out. Coverage is unchanged — every lens still runs and every surviving
+  finding still gets its own verifier — but a review uses fewer concurrent
+  agents, so it is lighter on rate limits and easier to follow.
+
 ## [2.1.0] - 2026-09-19
 
 ### Added

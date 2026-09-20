@@ -1,7 +1,7 @@
 ---
 name: flow-review
 description: Stage 4 of the flow workflow — reviews the working diff against the flow design and plan artifacts in escalating multi-agent rounds, fixes what survives refutation, and reports each fix with its root cause. Use when tasks/<date>-<slug>/design.md or plan.md exists for the current change, or right after flow-implem finishes, or when the user asks to double-check the work, sanity-check it, or says "did I miss anything" before opening a PR. For reviewing a diff with no flow artifacts behind it, use review-code instead.
-version: 2.1.0
+version: 2.2.0
 ---
 
 # Flow / Review: three escalating rounds, then fix
@@ -30,10 +30,29 @@ noted, not fixed.
 - **No base branch** → review the uncommitted changes only, and say that was
   the scope.
 
+### Concurrency cap — 3 subagents per batch
+
+**Never dispatch more than 3 subagents in one message.** When a round has more
+work than that, run it in sequential batches of at most 3 and merge the results:
+
+```
+    9 units of work, cap 3
+    ┌───────────┐  ┌───────────┐  ┌───────────┐
+    │ A   B   C │→ │ D   E   F │→ │ G   H   I │→ merge
+    └───────────┘  └───────────┘  └───────────┘
+      batch 1        batch 2        batch 3
+```
+
+Order batches by risk: the lenses or findings most likely to be real go first,
+so an early batch can inform the prompts of the next. The cap changes *how many
+at once*, never *how much gets covered* — every lens still runs, every surviving
+finding still gets its own verifier.
+
 ### 1. Round 1 — Correctness (parallel readers)
 
-Fan out one reader per dimension over the diff, all in a single message. Each
-returns findings with file:line, a concrete failure scenario, and a severity.
+Fan out one reader per dimension over the diff, **3 at a time** (so: Logic /
+State & async / Boundaries, then Errors / Data & security). Each returns
+findings with file:line, a concrete failure scenario, and a severity.
 
 | Lens | Looks for |
 | --- | --- |
@@ -113,8 +132,8 @@ claim is traceable to a line someone already agreed to.
 
 ### 3. Round 3 — Adversarial
 
-**One independent verifier per surviving finding**, dispatched concurrently.
-Each must return exactly one verdict:
+**One independent verifier per surviving finding**, dispatched in batches of at
+most 3 — highest severity first. Each must return exactly one verdict:
 
 ```
 Decide whether this claimed finding is real. Your job is to refute it if you can.
@@ -140,7 +159,7 @@ is not `active`. CONFIRMED must quote both the offending line and the rule's
 `**Because:**` — a rule whose failure mode cannot be shown here is a rule that
 does not apply.
 
-Then spend the **round 1 risk map**: send a reader at each spot a round-1 lens
+Then spend the **round 1 risk map**, same cap of 3 per batch: send a reader at each spot a round-1 lens
 flagged as not-fully-understood. Also ask what the first two rounds never looked
 at — a changed-but-unreviewed file, a config flag, a migration's down path, a
 caller outside the diff.
@@ -256,6 +275,7 @@ Three rounds multiply noise threefold unless you hold the line. Do not report:
 ## Rules
 
 - **Three rounds, always** — cheap rounds first, adversarial last.
+- **At most 3 subagents per batch** — batch sequentially, never drop coverage.
 - **A finding needs a failure scenario** or it is discarded.
 - **Refute before fixing**, one verifier per finding — guideline findings
   included.
@@ -282,3 +302,5 @@ Three rounds multiply noise threefold unless you hold the line. Do not report:
 | "The design argued against this rule, so the design is wrong." | Already decided in stage 1. Not your call in stage 4. |
 | "Good rule — I'll nominate it from this one instance." | One instance is a decision record. Unearned rules kill the rulebook. |
 | "There's no docs/guidelines/, I'll create one." | Skip the pass. `flow-setup` is user-invoked only. |
+| "There are 8 findings — I'll fire all 8 verifiers at once, it's faster." | Cap is 3 per batch. Batch them; don't verify fewer. |
+| "To respect the cap I'll merge two lenses into one agent." | That's dropping coverage, not batching. Run both, in different batches. |

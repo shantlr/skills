@@ -4,6 +4,63 @@ All notable changes to the `flow-setup` skill (formerly `setup-docs`) are
 documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com), newest first.
 
+## [2.3.0] - 2026-09-20
+
+### Added
+- **An update mode.** A project whose scaffold has fallen behind the skill can now
+  be brought up to date — new instruction-file sections, an improved
+  `build-index.sh`, a template that gained a field — without re-surveying the
+  codebase, without a migration proposal, and without touching a single file you
+  wrote. Triggers on "update my docs setup", "update the flow setup", "my docs
+  scaffold is out of date". A new step 0 decides setup vs update before anything
+  else runs.
+- **`upgrade-flow.sh`** does the mechanical half. It finds the docs tree by its
+  contents (so a `documentation/` tree works), then labels every machine-owned
+  file `same` / `differs` / `missing`. Read-only by default; `--apply` writes,
+  `--diff` shows. Two tiers: **tooling** (scripts, templates) is overwritten
+  because it is the skill's and git holds the old copy, while **prose**
+  (`docs/README.md`, the guideline and tasks READMEs) is only ever reported —
+  a project may have localised it deliberately.
+- **A version stamp** in the docs README's frontmatter (`flow_setup_version`,
+  `docs_dir`, `guidelines`, `tasks`), written by `setup-flow.sh` and rewritten by
+  `upgrade-flow.sh`. A tree with no stamp — anything set up before this release —
+  is diffed from scratch instead of guessed at, so it needs nothing from you.
+- **The update re-proposes guidelines the code already obeys**, with a higher bar
+  than at setup: existing rules and decision records are read first so nothing
+  already settled is re-raised, at most ~5 candidates, three cited occurrences
+  each, and nothing is written unless you pick it one by one.
+
+### Changed
+- The instruction-file block is now reconciled **section by section** on an
+  update: a missing section is appended, and a section you edited is kept as
+  yours with the conflict reported — never silently restored to the shipped text.
+
+## [2.2.0] - 2026-09-20
+
+### Added
+- **A `## Code comments` section** in the block written to `CLAUDE.md`. The rule
+  is that a comment is present tense and must say something neither the code nor
+  `docs/` already says. It bans the expensive failure mode specifically: history
+  in the file ("this used to…", dates, sprint/wave labels, which agent wrote it),
+  `docs/` retold in prose instead of cited in one line, incident transcripts that
+  belong in a bug record, `── banner ──` essays and ASCII diagrams inside
+  comments, comments correcting other comments, and a docstring on every
+  self-evident union arm. Keeps what earns its place — why-not-the-alternative,
+  warnings, one-line `@see` pointers, deliberate absences, API contracts. Caps
+  file headers at ~3 lines and flags any file that is more comment than code.
+  Cuts the tokens every human and agent spends re-reading an unmaintained second
+  copy of the docs tree.
+- **A `## Tests` section** in the same block. A test earns its place by being able
+  to fail for a real reason — branches and boundaries, encoded decisions,
+  regressions from a real bug record, public contracts. Not the framework, not
+  mock-only tests, not one test per trivial getter, not a case a broader existing
+  test already covers. The gate is "what bug would this have caught?"
+
+### Changed
+- Step 10 now appends to **`AGENTS.md`** when the project uses that name instead
+  of `CLAUDE.md`, and where an existing project rule contradicts the block, the
+  project's rule is kept and the conflict reported rather than overridden.
+
 ## [2.1.0] - 2026-09-19
 
 ### Added

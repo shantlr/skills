@@ -16,9 +16,9 @@ authoring conventions.
 | [flow-design](./skills/workflows/flow-design) | 2.1.0 | Stage 1 — scans the codebase, grills the user until nothing is ambiguous, then writes the technical design. The only interactive stage. |
 | [flow-plan-implem](./skills/workflows/flow-plan-implem) | 2.0.0 | Stage 2 — converts a design into a maximally parallel plan: contracts first, then waves of file-disjoint tasks. Ships `check-plan.sh`. |
 | [flow-implem](./skills/workflows/flow-implem) | 2.1.0 | Stage 3 — executes the plan wave by wave, dispatching file-disjoint tasks to concurrent subagents, one commit per task. |
-| [flow-review](./skills/workflows/flow-review) | 2.1.0 | Stage 4 — three escalating multi-agent review rounds over the working diff, fixes findings, reports root causes. |
+| [flow-review](./skills/workflows/flow-review) | 2.2.0 | Stage 4 — three escalating multi-agent review rounds over the working diff, fixes findings, reports root causes. |
 | [flow-doc](./skills/workflows/flow-doc) | 1.1.0 | Stage 5 — promotes the finished task into the project's `docs/` tree: feature one-pager plus a decision record per rejected alternative. Promotes earned rules into `docs/guidelines/`. |
-| [flow-setup](./skills/workflows/flow-setup) | 2.1.0 | Scaffolds the `docs/` + `tasks/` trees the flow lives in, including the `docs/guidelines/` rulebook, and migrates an existing project onto that layout. User-invoked only. |
+| [flow-setup](./skills/workflows/flow-setup) | 2.3.0 | Scaffolds the `docs/` + `tasks/` trees the flow lives in, including the `docs/guidelines/` rulebook, migrates an existing project onto that layout, and updates a scaffold that has fallen behind (`upgrade-flow.sh`). Writes the documentation, code-comment and testing rules into `CLAUDE.md`/`AGENTS.md`. User-invoked only. |
 
 <!-- SKILLS:END -->
 

@@ -189,6 +189,30 @@ if [ "$DOCS_DIR" != "docs" ]; then
   echo "  retarget docs/ -> $DOCS_DIR/ in README and templates"
 fi
 
+# Stamp the tree with the version that wrote it, so `upgrade-flow.sh` can tell
+# an out-of-date file from a deliberately edited one. Written into the docs
+# README's frontmatter — visible where someone will actually see it, unlike a
+# dotfile. Rewritten (never duplicated) if a stamp is already there.
+VERSION="$(awk -F': *' '/^version:/ {print $2; exit}' "$(dirname "$ASSETS")/../SKILL.md" 2>/dev/null || true)"
+[ -n "$VERSION" ] || VERSION="unknown"
+if [ -f "$DOCS/README.md" ]; then
+  guidelines_flag=false; [ "$GUIDELINES" -eq 1 ] && guidelines_flag=true
+  tasks_flag=true;       [ "$NO_TASKS" -eq 1 ]   && tasks_flag=false
+  stamp_tmp="$DOCS/README.md.stamp.$$"
+  {
+    echo "---"
+    echo "flow_setup_version: $VERSION"
+    echo "docs_dir: $DOCS_DIR"
+    echo "guidelines: $guidelines_flag"
+    echo "tasks: $tasks_flag"
+    echo "---"
+    awk 'NR == 1 && $0 == "---" { fm = 1; next }
+         fm && $0 == "---"      { fm = 0; next }
+         !fm                    { print }' "$DOCS/README.md"
+  } > "$stamp_tmp" && mv "$stamp_tmp" "$DOCS/README.md"
+  echo "  stamp  $DOCS_DIR/README.md (flow_setup_version: $VERSION)"
+fi
+
 # Generate the read path so FEATURE-MAP.md and INDEX.md exist from minute one.
 "$DOCS/build-index.sh" --root "$ROOT" --docs-dir "$DOCS_DIR" >/dev/null 2>&1 || true
 

@@ -1,7 +1,7 @@
 ---
 name: flow-setup
-description: Sets up the two folders the flow workflow reads and writes — a `docs/` tree (ARCHITECTURE.md entry point, per-feature one-pagers, dated decision and bug records, a `guidelines/` rulebook of cross-cutting UI/UX and API conventions, generated FEATURE-MAP.md / INDEX.md) and a `tasks/` folder where each unit of work keeps its design, plan and review. Also migrates an existing project onto that layout, proposing a move for every file already serving the same purpose. Use when the user says "set up docs", "set up the flow", "create a docs folder", "add documentation structure", "scaffold docs", "document this project", "I want ADRs / decision records / bug records", "I want a place for our UI/UX guidelines or house conventions", "migrate my docs", or asks for an architecture overview or a map of which files implement what. User-invoked only — never trigger this skill on your own initiative while doing other work; it must be asked for explicitly.
-version: 2.1.0
+description: Sets up the two folders the flow workflow reads and writes — a `docs/` tree (ARCHITECTURE.md entry point, per-feature one-pagers, dated decision and bug records, a `guidelines/` rulebook of cross-cutting UI/UX and API conventions, generated FEATURE-MAP.md / INDEX.md) and a `tasks/` folder where each unit of work keeps its design, plan and review. Also migrates an existing project onto that layout, proposing a move for every file already serving the same purpose. Use when the user says "set up docs", "set up the flow", "create a docs folder", "add documentation structure", "scaffold docs", "document this project", "I want ADRs / decision records / bug records", "I want a place for our UI/UX guidelines or house conventions", "migrate my docs", or asks for an architecture overview or a map of which files implement what. Also updates a project whose scaffold has fallen behind this skill — "update my docs setup", "update the flow setup", "my docs scaffold is out of date", "pull in the new guidelines" — refreshing the scripts, templates and instruction-file sections without touching anything written from the codebase. User-invoked only — never trigger this skill on your own initiative while doing other work; it must be asked for explicitly.
+version: 2.3.0
 ---
 
 # Flow / Setup: the folders the flow lives in
@@ -116,6 +116,24 @@ frontmatter. One fact, one home — the index cannot drift from its source
 because it is rebuilt from it.
 
 ## Instructions
+
+0. **Is this a setup or an update?** Check before anything else — the two paths
+   share almost nothing, and walking the setup path over a live scaffold is how
+   you end up proposing to move files nobody asked you to touch.
+
+   ```sh
+   ls docs/build-index.sh documentation/build-index.sh 2>/dev/null
+   head -8 docs/README.md 2>/dev/null   # a flow_setup_version stamp?
+   ```
+
+   | What you find | Path |
+   | --- | --- |
+   | No docs tree, or one that is not a flow tree | **Setup** — step 1 below |
+   | A flow tree (`build-index.sh` + `templates/`), stamped or not | **Update** — jump to [Update mode](#update-mode) and do *not* run steps 1–9 |
+   | A flow tree that is half there (no `templates/`, no `tasks/`) | **Update** — it reports and fills the gaps |
+
+   An **unstamped** flow tree is normal: stamps only exist from 2.3.0 on. It is
+   still an update, and every file is diffed from scratch rather than guessed at.
 
 1. **Survey what the project already has.** Do not go looking for a fixed list
    of known layouts — every team invents its own. **Explore the actual project
@@ -366,16 +384,24 @@ because it is rebuilt from it.
    topic slug collides with another area. All of them are your bugs at this
    point — fix them, don't report them as findings.
 
-10. **Add the maintenance rules** to the project's `CLAUDE.md`, creating it if
-   absent. The block is everything after the `---` in
-   `references/claude-md-block.md` — append it whole:
+10. **Add the maintenance rules and code guidelines** to the project's agent
+   instruction file — `CLAUDE.md`, or `AGENTS.md` if the project already uses
+   that name — creating it if absent. The block is everything after the `---` in
+   `references/claude-md-block.md` — three sections, appended whole:
+   `## Documentation` (the read/write path), `## Code comments` (comments earn
+   their place by saying what the code cannot; never restate a `docs/` record),
+   and `## Tests` (a test earns its place by being able to fail for a real
+   reason).
    ```sh
-   awk 'f; /^---$/ {f=1}' "$SKILL/references/claude-md-block.md" >> CLAUDE.md
+   AGENTS_MD=CLAUDE.md; [ -f AGENTS.md ] && [ ! -f CLAUDE.md ] && AGENTS_MD=AGENTS.md
+   awk 'f; /^---$/ {f=1}' "$SKILL/references/claude-md-block.md" >> "$AGENTS_MD"
    ```
-   Then reconcile by hand: if `CLAUDE.md` already had a `## Documentation`
-   heading, merge the two rather than leaving both; and if you used
-   `--docs-dir`, replace `docs` throughout the block. A scaffold nobody updates
-   becomes fiction within two weeks — this block is what keeps it alive.
+   Then reconcile by hand: if the file already had a `## Documentation`,
+   `## Code comments` or `## Tests` heading, merge the two rather than leaving
+   both — and where the project's existing rule contradicts the block, keep the
+   project's and report the conflict instead of silently overriding it. If you
+   used `--docs-dir`, replace `docs` throughout the block. A scaffold nobody
+   updates becomes fiction within two weeks — this block is what keeps it alive.
 
 11. **Report** the tree (`find docs -type f | sort`), show the user
    `ARCHITECTURE.md`'s outline, and state the habits that keep it alive:
@@ -385,6 +411,10 @@ because it is rebuilt from it.
      **changed a rule** — not for typos;
    - **overturning a decision edits two records, it never deletes one** — set
      `status: superseded` / `superseded_by:` on the old, `supersedes:` on the new;
+   - **comments say why, never what** — anything derivable from the code, or
+     already written in a `docs/` record, is a link at most;
+   - **a test must be able to fail for a real reason** — "what bug would this
+     have caught?" has an answer, or the test does not get written;
    - **a guideline is earned on the second occurrence**, not the first — the
      first time is a decision record. The flow nominates candidates as it works
      (`flow-design` and `flow-review` write them into the task folder,
@@ -392,6 +422,91 @@ because it is rebuilt from it.
 
    Offer to wire `./docs/build-index.sh --check` into CI. It is the only part of
    this system that notices drift by itself.
+
+## Update mode
+
+For a project whose scaffold already exists and has fallen behind this skill —
+new instruction-file sections, an improved `build-index.sh`, a template that
+gained a field. **Steps 1–9 do not run.** No survey, no migration proposal, no
+file moves, no rewriting `ARCHITECTURE.md`.
+
+The scaffold is two kinds of content, and only one of them is updatable:
+
+```
+  MACHINE-OWNED — copies of this skill's assets        → diffed and updated
+  ├── docs/build-index.sh, docs/new-record.sh              (tooling tier)
+  ├── docs/templates/*.md                                  (tooling tier)
+  ├── docs/README.md, guidelines/README.md, tasks/README.md (prose tier —
+  │                                                          reported only)
+  └── the CLAUDE.md / AGENTS.md block                      (prose, by hand)
+
+  USER-OWNED — written from this codebase                → never touched
+  ├── docs/ARCHITECTURE.md, features/*/README.md
+  ├── every decision, bug and guideline record
+  └── tasks/**
+```
+
+1. **Report, before writing anything.**
+   ```sh
+   "$SKILL/scripts/upgrade-flow.sh"                 # read-only report
+   "$SKILL/scripts/upgrade-flow.sh" --diff          # with diffs
+   ```
+   It finds the docs dir by its contents (so a `documentation/` tree works),
+   reads the stamp if there is one, and labels every machine-owned file
+   `same` / `differs` / `missing`. Show the user the report before applying.
+
+2. **Apply the mechanical part.**
+   ```sh
+   "$SKILL/scripts/upgrade-flow.sh" --apply
+   ```
+   Tooling that differs is overwritten — those files are ours and git holds the
+   previous copy. **Prose that differs is never overwritten**, only reported: the
+   project may have localised it deliberately. Reconcile each `DIFFERS` prose
+   file by hand, keeping the project's additions and folding in what is new.
+   The version stamp is rewritten last.
+
+3. **Reconcile the instruction-file block** — the part a script cannot do.
+   Compare the project's `CLAUDE.md` (or `AGENTS.md`) against
+   `references/claude-md-block.md` **section by section**:
+
+   | State | Action |
+   | --- | --- |
+   | Section missing entirely | Append it. |
+   | Section present, matches | Leave it. |
+   | Section present, differs | Show the diff. **Keep the project's wording**, add only rules it lacks, and report the conflict. |
+
+   A section the user edited is a decision they made. Never restore it to the
+   shipped text because the shipped text is newer.
+
+4. **Offer the machinery the project never opted into.** If `upgrade-flow.sh`
+   reported `guidelines/` absent, say what it is and offer
+   `setup-flow.sh --guidelines`. It adds an **empty** tree, a README and a
+   template — never a rule.
+
+5. **Re-propose guidelines from the code**, the same pass as step 8 — but on an
+   update it is a *proposal list*, and the bar is higher because the project has
+   history now:
+   - **Read the existing rulebook first.** A pattern already covered by an active
+     rule is not a candidate, and neither is one an existing decision record
+     already settled.
+   - **Nothing is written without the user picking it**, one by one. No bulk
+     accept.
+   - **At most ~5 candidates per update.** If you have more, you are describing
+     the codebase, not finding rules it already obeys.
+   - **Say where each was seen** — three or more real occurrences, cited by path.
+     Fewer, and it is a decision record at best.
+
+   Padding the rulebook is the failure mode here: an invented rule is read once,
+   disbelieved, and teaches everyone to skim the rest. If nothing clears the bar,
+   say so — that is the expected outcome on a healthy project.
+
+6. **Verify and report.**
+   ```sh
+   ./docs/build-index.sh --check      # must exit 0
+   ```
+   Then report: what was updated, what prose still needs a hand, which
+   instruction-file sections were added, and which guideline candidates the user
+   declined (so the next update does not re-propose them).
 
 ## What gets written for real, and what does not
 

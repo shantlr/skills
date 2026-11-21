@@ -221,6 +221,21 @@ interfaces verbatim as stubs, and every parallel task is written against them.
 Catching a wrong one here costs one message; catching it during implementation
 costs a design revision and a plan rewrite.
 
+### Design guidance and visual references
+
+Record the location and applicable requirements of design guidelines or written
+UI references supplied for the task in `design.md` so the fidelity check can
+use the original sources.
+
+When the user supplies a screenshot, mockup, or design link, inspect the reference
+and record its location, relevant screens, viewport sizes, and UI states in
+`design.md`. Preserve access to the original in the handoff. Record observable
+requirements for layout, spacing, typography, colors, and assets where relevant.
+Capture any departures the user approved. Identify unclear responsive or state
+behavior and ask only about ambiguities that materially affect the result.
+If the original is inaccessible, record that gap and seek access before
+claiming fidelity.
+
 ## Phase 4 — Write the design
 
 Write `tasks/<YYYY-MM-DD>-<slug>/design.md`:

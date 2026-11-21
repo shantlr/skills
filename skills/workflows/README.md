@@ -48,7 +48,11 @@ activity, so they live in one skill. Stages 2–5 run on the artifacts.
 | 2 | [`flow-plan-implem`](./flow-plan-implem) | design | `…/plan.md` |
 | 3 | [`flow-implem`](./flow-implem) | plan | code, plan checkboxes |
 | 4 | [`flow-review`](./flow-review) | design + plan + diff | fixes in the tree, report in chat |
+| 4b | [`flow-design-fidelity`](./flow-design-fidelity) | supplied design guidance + rendered implementation | comparison evidence and findings in chat, fixes in the tree |
 | 5 | [`flow-doc`](./flow-doc) | design + plan + diff | `docs/features/<f>/…`, `docs/guidelines/…` |
+
+Stage 4b runs after review whenever applicable design guidance was provided for
+the task, including written guidelines and visual references.
 
 Each stage can be invoked on its own (`/flow-plan-implem`) to redo or resume one
 step.

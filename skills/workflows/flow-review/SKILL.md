@@ -131,6 +131,12 @@ A guideline finding **cites the rule ID and the specific line or behavior**:
 **No rule ID, no guideline finding.** The whole value of the pass is that every
 claim is traceable to a line someone already agreed to.
 
+For visual references, compare the current render and original at matching
+viewport sizes and UI states. Use the design's requirements and approved
+departures to distinguish regressions from intentional choices. Fix in-scope
+differences and recheck the render. Include the comparison evidence or the
+specific reason the visual check remains unverified.
+
 ### 3. Round 3 — Adversarial
 
 **One independent verifier per surviving finding**, dispatched in batches of at

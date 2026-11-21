@@ -110,6 +110,11 @@ typechecking to the wave barrier. If the project has no test runner, say so in
 **Preflight** and use the narrowest real check available (lint on the owned
 files, a build, a smoke command) — never a vague one.
 
+For tasks that implement a visual reference, link the original and the relevant
+requirements in the task. Include a verification step that renders the screen
+at the reference viewport and state, then compares it against the original.
+Name who verifies the assembled screen when its layout spans multiple tasks.
+
 ### 6. Add the scaffolding sections
 
 - **Preflight** — exact commands for install / migrate / typecheck / test / lint,

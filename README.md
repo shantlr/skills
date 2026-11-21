@@ -17,6 +17,7 @@ authoring conventions.
 | [flow-plan-implem](./skills/workflows/flow-plan-implem) | 3.0.0 | Stage 2 — converts a design into a maximally parallel plan: contracts first, then waves of file-disjoint tasks. Ships `check-plan.sh`. |
 | [flow-implem](./skills/workflows/flow-implem) | 3.0.0 | Stage 3 — executes the plan wave by wave, dispatching file-disjoint tasks to concurrent subagents. Commits are opt-in. |
 | [flow-review](./skills/workflows/flow-review) | 4.0.0 | Stage 4 — three escalating multi-agent review rounds over the working diff, fixes findings, reports root causes in the conversation (no review file). |
+| [flow-design-fidelity](./skills/workflows/flow-design-fidelity) | 1.0.0 | Stage 4b or standalone — checks the finished implementation against supplied design guidance. |
 | [flow-doc](./skills/workflows/flow-doc) | 3.0.0 | Stage 5 — promotes the finished task into the project's `docs/` tree: feature one-pager plus a decision record per rejected alternative. Promotes earned rules into `docs/guidelines/`. |
 | [flow-setup](./skills/workflows/flow-setup) | 2.4.0 | Scaffolds the `docs/` + `tasks/` trees the flow lives in, including the `docs/guidelines/` rulebook, migrates an existing project onto that layout, and updates a scaffold that has fallen behind (`upgrade-flow.sh`). Writes the documentation, code-comment and testing rules into `CLAUDE.md`/`AGENTS.md`. User-invoked only. |
 

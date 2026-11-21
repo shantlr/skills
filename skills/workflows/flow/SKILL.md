@@ -8,7 +8,7 @@ version: 3.0.0
 
 ## Overview
 
-`flow` is an orchestrator. It does no work itself — it runs five stage skills in
+`flow` is an orchestrator. It does no work itself — it runs stage skills in
 order and carries artifacts between them.
 
 ```
@@ -78,7 +78,15 @@ a missing credential. Then ask (batched, with a recommendation) and keep going.
    | 2 | `flow-plan-implem` | `plan.md` exists |
    | 3 | `flow-implem` | all plan tasks checked |
    | 4 | `flow-review` | never — always review |
+   | 4b | `flow-design-fidelity` | no applicable design guidance supplied for the task |
    | 5 | `flow-doc` | repo has neither a `docs/features/` nor a `docs/guidelines/` tree |
+
+   Run 4b after general review and its fixes, including when resuming a task
+   with a completed plan. Trigger it for applicable guidelines or written UI
+   requirements provided for the task, as well as mockups, screenshots, and
+   prototypes. Pass the original sources and approved departures recorded in
+   the design. An inaccessible source still triggers the check and must be
+   reported as unverified. Include the outcome in the final handoff.
 
 4. **Between stages, do a 3-line handoff.** State: artifact written, the single
    most important decision in it, and what the next stage will do with it. No
@@ -134,3 +142,12 @@ asking inline.
   Stages 1 and 4 read the rules and *nominate* new ones into their own
   artifact; neither creates nor edits a topic file.
 - **Report root causes, not just fixes.**
+
+## Handoffs to the user
+
+Use a small ASCII diagram when it helps explain a layout, flow, or change.
+End each user-facing turn with what the user should check, answer, or do
+next, or state that no action is needed. For each parked item that needs
+feedback, explain where it surfaces, why it matters, what decision is
+pending, and which option you recommend and why. Use the Jean-Claude
+`ask_question` MCP tool when asking the user to decide.

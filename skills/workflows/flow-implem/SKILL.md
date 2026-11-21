@@ -167,13 +167,19 @@ When every agent in the wave has returned:
 Do not open the next wave with an unexplained red barrier — but never let one
 failed task freeze the rest of the plan either.
 
+For work backed by a visual reference, render the assembled screen at the
+reference viewport and state. Compare it side by side with the original before
+checking off the visual verification. Fix mismatches within scope and inspect
+the updated render. Record the screenshot or preview location and any checks
+that could not run, including the specific blocker.
+
 ### 4. When something fails
 
 | Situation | Action |
 | --- | --- |
 | One task fails, siblings fine | Let the wave finish. Fix the failed task yourself, or redispatch it with the failure output. Its siblings still land. |
 | Verify fails | State one hypothesis, then fix. Still failing after **2 attempts** → stop guessing, add logging/instrumentation and find the real cause before editing again. |
-| Third consecutive failure on one task | Stop touching the code. The contract or the design is wrong, not your implementation — escalate to the two rows below. |
+| Same bug remains after two turns with attempted fixes | Before a third fix, add focused diagnostic logs and reproduce the failure. Use the observed results to determine whether the cause is in the implementation, contract, or design. |
 | Barrier fails at a seam between two tasks | The contract (T0) was ambiguous. Fix the contract, then the two tasks — not one side of the seam. |
 | Agent reports it needs a file it doesn't own | Planning bug. Reassign that file's edits to one task, or add a wiring task. Do not let two tasks share it. |
 | Root cause is in the design | Stop. Re-enter `flow-design` for that part, append a `## Revision` section to the design, then re-enter `flow-plan-implem` in **revision mode** to patch the plan. Never renumber or rewrite committed tasks. |
@@ -190,6 +196,7 @@ When all tasks are checked, post:
 
 - Wave-by-wave table: tasks per wave, what ran concurrently (commit shas, in commit mode)
 - Anything added to `## Discovered`
+- Root cause of each bug fixed and the evidence that confirmed it
 - Any design revisions made and why
 - Ownership violations caught at a barrier
 - ASCII diagram of the final shape if it differs from the design's
